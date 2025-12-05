@@ -1,0 +1,86 @@
+tasklist /FI "IMAGENAME eq python.exe"
+netstat -aon | findstr ":8000"
+powershell -NoProfile -Command "try { $r=Invoke-WebRequest -Uri 'http://127.0.0.1:8000' -UseBasicParsing -TimeoutSec 5; Write-Host $r.StatusCode } catch { Write-Host $_.Exception.Message }"
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Guía rápida - Gestión Biomédica{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h4">Guía rápida — Acciones precisas y paso a paso</h1>
+
+  <div class="alert alert-secondary mt-3" role="alert">
+    <strong>Video de capacitación:</strong>
+    <a href="https://youtu.be/9Ga7v2vqans" target="_blank" rel="noopener" class="ms-2">Ver video paso a paso</a>
+  </div>
+
+  <h2 class="h5 mt-3">1) Entrar al sistema (paso a paso)</h2>
+  <ol>
+    <li>Abra su navegador y vaya a <a href="/accounts/login/">http://127.0.0.1:8000/accounts/login/</a>.</li>
+    <li>
+      En el campo <strong>Usuario</strong>: haga clic dentro del cuadro (pulse dentro) y escriba su usuario. Ejemplo: <code>Husi2025</code>.
+      <!-- Imagen eliminada por petición del usuario -->
+    </li>
+    <li>
+      En el campo <strong>Contraseña</strong>: haga clic dentro del cuadro (pulse dentro) y escriba su contraseña. Ejemplo: <code>Husi2025!</code>.
+    </li>
+    <li>Pulse el botón <strong>Ingresar</strong> (pulse el botón azul que dice "Ingresar").
+    </li>
+    <li>Si aparece un mensaje de error, lea el texto rojo; si no, verá la pantalla del <em>Panel</em>.</li>
+  </ol>
+
+  <h2 class="h5 mt-3">2) Crear un registro de ronda (formularios)</h2>
+  <p>Siga estas acciones exactamente dentro del <strong>Panel</strong>:</p>
+  <ol>
+    <li>Busque la tarjeta del servicio donde desea registrar la ronda. Oprima el botón <strong>Abrir</strong> en esa tarjeta.</li>
+    <li>En el formulario que aparece, localice el campo <strong>Hallazgo encontrado</strong>. Oprima dentro del campo y escriba lo que encontró (por ejemplo: "Ruido en ventilador").</li>
+    <li>Si hay un campo <strong>Placa del equipo</strong>: oprima el campo y escriba la placa (si no aplica, dejar en blanco).</li>
+    <li>Si hay un campo <strong>Orden de trabajo</strong>: oprima el campo y escriba el número de OT (si no aplica, dejar en blanco).</li>
+    <li>Si hay una opción <strong>¿Equipo fuera de servicio?</strong> marque <strong>Sí</strong> u <strong>No</strong> haciendo clic en la opción correspondiente.</li>
+    <li>Si el formulario solicita firma: busque el recuadro blanco para la firma (un área para dibujar). Pulse dentro del recuadro con el ratón o con el dedo y dibuje su firma. Luego pulse el botón <strong>Firmar</strong> (o Guardar firma) que está debajo del recuadro.
+    </li>
+    <li>Finalmente, oprima el botón <strong>Guardar registro</strong>. Espere a ver un mensaje verde que diga que el registro se guardó correctamente.</li>
+  </ol>
+
+  <h2 class="h5 mt-3">3) Editar un registro que ya existe</h2>
+  <ol>
+    <li>Vaya a <strong>Historial servicios</strong> (clic en el botón "Historial servicios" en Atajos rápidos o en el menú).</li>
+    <li>Localice el registro que desea cambiar y oprima el botón <strong>Editar</strong> (normalmente un lápiz o enlace que dice "Editar").</li>
+    <li>En la pantalla de edición: haga clic en el campo que quiera cambiar, modifique el texto y luego oprima <strong>Guardar</strong>.</li>
+    <li>Si la aplicación muestra un error al guardar, lea el texto rojo y corrija el campo indicado; luego vuelva a oprimir <strong>Guardar</strong>.</li>
+  </ol>
+
+  <h2 class="h5 mt-3">4) Eliminar un registro (solo administradores)</h2>
+  <ol>
+    <li>En <strong>Historial servicios</strong> encuentre el registro a eliminar.</li>
+    <li>Oprima el botón <strong>Eliminar</strong> (puede pedir confirmación). Confirme si está seguro.</li>
+    <li>Si la eliminación fue exitosa verá un mensaje verde; si no, verá un mensaje rojo con el motivo.</li>
+  </ol>
+
+  <h2 class="h5 mt-3">5) Exportar / descargar informes</h2>
+  <ol>
+    <li>Abra <strong>Historial servicios</strong>.</li>
+    <li>Ubique los botones de exportación (normalmente dicen "Exportar Excel" o "Exportar PDF").</li>
+    <li>Oprima el botón del formato que necesite; se descargará un archivo a su carpeta de descargas del navegador.</li>
+  </ol>
+
+  <h2 class="h5 mt-3">6) Si algo no funciona (pasos rápidos)</h2>
+  <ol>
+    <li>¿No llega al sitio? Abra PowerShell y ejecute estas tres líneas (copie y pegue):
+      <pre><code>tasklist /FI "IMAGENAME eq python.exe"
+netstat -aon | findstr ":8000"
+powershell -NoProfile -Command "try { (Invoke-WebRequest -Uri 'http://127.0.0.1:8000' -UseBasicParsing -TimeoutSec 5).StatusCode } catch { Write-Host $_.Exception.Message }"</code></pre>
+    </li>
+    <li>Si netstat no muestra LISTENING en :8000: reinicie el servidor con:
+      <pre><code>cd C:\Users\ASUS\Desktop\san.I\san.I\ayuda
+python manage.py runserver 127.0.0.1:8000</code></pre>
+    </li>
+    <li>Si el problema es el firewall y eres administrador, abre PowerShell como Administrador y ejecuta:
+      <pre><code>powershell -ExecutionPolicy Bypass -File .\permitir_puerto_8000_admin.ps1</code></pre>
+    </li>
+  </ol>
+
+  {# Enlaces al manual eliminados: se quitaron los enlaces directos al Manual para simplificar la guía rápida. #}
+</div>
+{% endblock %}

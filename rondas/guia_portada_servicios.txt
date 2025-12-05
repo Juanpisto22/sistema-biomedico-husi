@@ -1,0 +1,114 @@
+# Portada y lógica para rondas hospitalarias
+
+## Portada (HTML)
+
+```html
+<!-- templates/panel.html -->
+<h1>Hospital Universitario San Ignacio</h1>
+<h2>Gestión Biomédica</h2>
+<small>Rondas por servicio</small>
+<div style="margin-top:10px;">
+  <strong>Usted puede realizar su ronda en los horarios de 7 am a 12 am (medianoche).</strong>
+</div>
+<hr>
+<h3>Servicios Prioritarios</h3>
+<ul>
+  <li>UNIDAD DE RECIÉN NACIDOS (CUIDADOS INTERMEDIOS)</li>
+  <li>UNIDAD DE RECIÉN NACIDOS (CUIDADOS INTENSIVOS)</li>
+  <li>UNIDAD DE CUIDADOS INTENSIVOS</li>
+  <li>UNIDAD DE CUIDADO INTENSIVO PEDIÁTRICO</li>
+</ul>
+<h3>Sedes Externas</h3>
+<ul>
+  <li>Cuidados Paliativos</li>
+  <li>Calle 41</li>
+  <li>Intelectus</li>
+</ul>
+```
+
+## Lógica de servicios por día (Python)
+
+```python
+# views.py
+from datetime import datetime
+
+def get_services_by_day():
+    day = datetime.now().weekday()  # 0=Lunes, 1=Martes, ...
+    ronda_diaria = {
+        0: ["Urgencias", "Salud Mental", "Trasplante de Médula"],
+        1: ["Oftalmología", "Neurociencias", "Patología", "Radiología", "Hospitalización Aislamiento", "Sexto Centro", "Medicina Nuclear"],
+        2: ["Urgencias", "Oncología", "Hemato-Oncología", "Gastroenterología"],
+        3: ["Neumología", "Nefrología", "Cardiología", "Medicina Interna", "Neurología", "Otorrino"],
+        4: ["Urgencias", "Consulta Externa", "Pediatría", "9 Piso"],
+    }
+    servicio_salas = {
+        0: ["Hospitalización Cirugía", "Lactario", "Central de Esterilización", "SIPE"],
+        2: ["Central de Esterilización", "Neurociencias", "SIPE"],
+        4: ["Central de Esterilización", "SIPE"],
+    }
+    laboratorio_clinico = {
+        0: [
+            "LC - ALMACÉN", "LC - MICROBIOLOGÍA", "LC - BIOLOGÍA MOLECULAR", "LC - CITOMETRÍA DE FLUJO",
+            "LC - INMUNOLOGÍA", "LC - HEMATOLOGÍA", "LC - QUÍMICA", "LC - TAMIZAJE",
+            "LC - REFERENCIA Y CONTRARREFERENCIA", "LC - SERVICIO TRANSFUSIONAL", "LC - TOMA DE MUESTRAS", "LC - ERRORES INNATOS"
+        ]
+    }
+    return {
+        "ronda_diaria": ronda_diaria.get(day, []),
+        "servicio_salas": servicio_salas.get(day, []),
+        "laboratorio_clinico": laboratorio_clinico.get(day, []) if day == 0 else [],
+    }
+```
+
+## Formulario por servicio (HTML ejemplo)
+
+```html
+<form>
+  <label>Hallazgo</label><input type="text" required><br>
+  <label>Placa del equipo</label><input type="text" required><br>
+  <label>Orden de trabajo</label><input type="text" required><br>
+  <label>Eventos de seguridad</label><input type="text" required><br>
+  <label>Fuera de servicio</label>
+  <select required><option value="">Seleccione</option><option>Si</option><option>No</option></select><br>
+  <label>Nombre encargado del servicio</label><input type="text" required><br>
+  <label>Firma encargado del servicio</label><input type="text" required><br>
+  <label>Firma encargado de ronda</label><input type="text" required><br>
+  <button type="submit">Guardar</button>
+  <button type="button" onclick="sinNovedad()">Sin novedad</button>
+</form>
+<script>
+function sinNovedad() {
+  // Deshabilita todos los campos excepto nombre y firmas
+  // ...
+}
+</script>
+```
+
+## Rondas dentro de salas de cirugía (HTML ejemplo)
+
+```html
+<h3>Rondas Salas de Cirugía</h3>
+<table>
+  <tr><th>Sala</th><th>Equipo</th><th>Estado</th></tr>
+  <!-- Repetir para cada sala y equipo -->
+  <tr>
+    <td>1</td>
+    <td>Máquina</td>
+    <td>
+      <select required>
+        <option>Operativo completo</option>
+        <option>Operativo parcial</option>
+        <option>Fuera de servicio</option>
+      </select>
+    </td>
+  </tr>
+</table>
+```
+
+## Exportación e indicadores
+- Exportar historial a Excel/PDF: Usa los botones y vistas ya implementadas.
+- Indicadores: Muestra novedades, eventos de seguridad y fuera de servicio en una tabla o gráfico.
+
+---
+
+Puedes copiar y adaptar este archivo para tu proyecto. Si necesitas el archivo en otro formato (Word, PDF, etc.), avísame.

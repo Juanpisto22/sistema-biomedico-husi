@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <g fill="none" stroke="#0b5fa7" stroke-width="3">
+    <rect x="8" y="18" width="208" height="84" rx="8" fill="#eaf6ff" stroke="#0b6fb8"/>
+    <circle cx="60" cy="60" r="6" fill="#0b6fb8" />
+    <rect x="88" y="44" width="110" height="8" rx="4" fill="#cfeefd" stroke="#9fd9fb"/>
+    <rect x="88" y="62" width="70" height="8" rx="4" fill="#cfeefd" stroke="#9fd9fb"/>
+  </g>
+  <g transform="translate(34,20)">
+    <path d="M110 70 L126 54 L118 46" fill="#0b6fb8" opacity="0.9"/>
+    <circle cx="128" cy="46" r="5" fill="#0b6fb8"/>
+  </g>
+  <text x="14" y="14" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#0b4d73">Pulse aquí y escriba su usuario</text>
+</svg>

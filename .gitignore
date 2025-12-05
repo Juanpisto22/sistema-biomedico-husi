@@ -1,0 +1,107 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/firmas/
+
+# Virtual Environment  
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Archivos temporales
+*.bak
+*.backup
+*.tmp
+requirements_new.txt
+
+# Scripts de prueba y desarrollo
+test_*.py
+debug_*.py
+diagnostico_*.py
+verificar_*.py
+limpiar_*.py
+probar_*.py
+reparar_*.py
+crear_usuarios*.py
+actualizar_*.py
+mejorar_*.py
+configurar_*.py
+generar_*.py
+quitar_*.py
+instalar_*.py
+convertir_*.py
+carga_datos_*.py
+check_*.py
+update_db.py
+build_*.py
+
+# Scripts PowerShell
+*.ps1
+
+# Archivos de documentación temporal
+diagnostico_log.txt
+EXPLICACION_CODIGOS.txt
+INSTRUCCIONES_*.txt
+INSTRUCCIONES_*.md
+RETOQUES_*.md
+GUIA_HTML.html
+manual_completo.html
+page_*.html
+debug_*.html
+debug_*.js
+tmp_*.svg
+
+# PDFs y archivos grandes
+*.pdf
+*.zip
+
+# HTML temporal
+MANUAL_USUARIO.html
+
+# Configuración deployment
+railway.json
+run_server.bat
+run_server.ps1

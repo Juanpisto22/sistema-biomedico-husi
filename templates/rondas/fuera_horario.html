@@ -1,0 +1,22 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Fuera de horario - Gestión Biomédica{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm text-center py-5">
+        <div class="card-body">
+          <div class="display-4 mb-3">⏰</div>
+          <h1 class="h4 mb-3">Hoy no hay rondas disponibles</h1>
+          <p class="mb-4 text-muted">
+            El acceso a los formularios está habilitado de lunes a domingo de 7:00 a. m. a 12:00 a. m. (medianoche).<br />
+            Intente nuevamente dentro del horario establecido.
+          </p>
+          <p class="small text-muted">Intento registrado: {{ ahora|date:"d/m/Y H:i" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

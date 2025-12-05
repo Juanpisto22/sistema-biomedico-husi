@@ -1,0 +1,531 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if tipo == 'cirugia' %}
+    Editar Registro de Cirugía - Gestión Biomédica
+  {% else %}
+    Editar Registro de Servicio - Gestión Biomédica
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h4 mb-0">
+      {% if tipo == 'cirugia' %}
+        <i class="fas fa-edit"></i> Editar Registro de Cirugía
+      {% else %}
+        <i class="fas fa-edit"></i> Editar Registro de Servicio
+      {% endif %}
+    </h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'historial_servicios' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Volver al Historial
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="alert-container mb-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-2 text-primary"></i>
+            <div>
+              <h6 class="mb-1">Información del Registro</h6>
+              <small class="text-muted">
+                ID: {{ registro.id }} | 
+                Creado: {{ registro.fecha_creacion|date:"d/m/Y H:i" }} |
+                {% if tipo == 'cirugia' %}
+                  Semana: {{ registro.semana_inicio|date:"d/m/Y" }}
+                {% else %}
+                  Categoría: {{ registro.get_categoria_display }}
+                {% endif %}
+              </small>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <form method="post" id="editForm">
+            {% csrf_token %}
+            
+            {% if tipo == 'cirugia' %}
+              <!-- Formulario de Cirugía -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.semana_inicio.id_for_label }}" class="form-label">
+                      <i class="fas fa-calendar"></i> {{ form.semana_inicio.label }}
+                    </label>
+                    {{ form.semana_inicio }}
+                    {% if form.semana_inicio.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.semana_inicio.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.observaciones.id_for_label }}" class="form-label">
+                      <i class="fas fa-notes-medical"></i> {{ form.observaciones.label }}
+                    </label>
+                    {{ form.observaciones }}
+                    {% if form.observaciones.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.observaciones.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.nombre_encargado_servicio.id_for_label }}" class="form-label">
+                      <i class="fas fa-user-md"></i> {{ form.nombre_encargado_servicio.label }}
+                    </label>
+                    {{ form.nombre_encargado_servicio }}
+                    {% if form.nombre_encargado_servicio.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.nombre_encargado_servicio.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.nombre_encargado_ronda.id_for_label }}" class="form-label">
+                      <i class="fas fa-user-check"></i> {{ form.nombre_encargado_ronda.label }}
+                    </label>
+                    {{ form.nombre_encargado_ronda }}
+                    {% if form.nombre_encargado_ronda.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.nombre_encargado_ronda.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Firmas para cirugía -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">
+                      <i class="fas fa-signature"></i> Firma Encargado Servicio
+                    </label>
+                    <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" 
+                            class="mb-2 d-block" id="canvas_servicio_edit"></canvas>
+                    <div class="d-flex gap-2 mb-2">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" 
+                              onclick="guardarFirma('canvas_servicio_edit', '{{ form.firma_servicio.id_for_label }}')">
+                        <i class="fas fa-save"></i> Guardar Firma
+                      </button>
+                      <button type="button" class="btn btn-outline-danger btn-sm" 
+                              onclick="limpiarFirma('canvas_servicio_edit')">
+                        <i class="fas fa-eraser"></i> Limpiar
+                      </button>
+                    </div>
+                    {{ form.firma_servicio }}
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">
+                      <i class="fas fa-signature"></i> Firma Encargado Ronda
+                    </label>
+                    <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" 
+                            class="mb-2 d-block" id="canvas_ronda_edit"></canvas>
+                    <div class="d-flex gap-2 mb-2">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" 
+                              onclick="guardarFirma('canvas_ronda_edit', '{{ form.firma_ronda.id_for_label }}')">
+                        <i class="fas fa-save"></i> Guardar Firma
+                      </button>
+                      <button type="button" class="btn btn-outline-danger btn-sm" 
+                              onclick="limpiarFirma('canvas_ronda_edit')">
+                        <i class="fas fa-eraser"></i> Limpiar
+                      </button>
+                    </div>
+                    {{ form.firma_ronda }}
+                  </div>
+                </div>
+              </div>
+
+            {% else %}
+              <!-- Formulario de Servicio Regular -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.categoria.id_for_label }}" class="form-label">
+                      <i class="fas fa-tags"></i> {{ form.categoria.label }}
+                    </label>
+                    {{ form.categoria }}
+                    {% if form.categoria.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.categoria.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.subservicio.id_for_label }}" class="form-label">
+                      <i class="fas fa-building"></i> {{ form.subservicio.label }}
+                    </label>
+                    {{ form.subservicio }}
+                    {% if form.subservicio.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.subservicio.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="{{ form.hallazgo.id_for_label }}" class="form-label">
+                  <i class="fas fa-clipboard-list"></i> {{ form.hallazgo.label }}
+                </label>
+                {{ form.hallazgo }}
+                {% if form.hallazgo.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.hallazgo.errors|join:", " }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.placa_equipo.id_for_label }}" class="form-label">
+                      <i class="fas fa-tag"></i> {{ form.placa_equipo.label }}
+                    </label>
+                    {{ form.placa_equipo }}
+                    {% if form.placa_equipo.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.placa_equipo.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.orden_trabajo.id_for_label }}" class="form-label">
+                      <i class="fas fa-wrench"></i> {{ form.orden_trabajo.label }}
+                    </label>
+                    {{ form.orden_trabajo }}
+                    {% if form.orden_trabajo.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.orden_trabajo.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Eventos de seguridad -->
+              <div class="mb-3">
+                <div class="form-check">
+                  {{ form.tiene_eventos_seguridad }}
+                  <label class="form-check-label" for="{{ form.tiene_eventos_seguridad.id_for_label }}">
+                    <i class="fas fa-exclamation-triangle"></i> {{ form.tiene_eventos_seguridad.label }}
+                  </label>
+                </div>
+              </div>
+
+              <div class="mb-3" id="eventos-seguridad-container" style="display: none;">
+                <label for="{{ form.eventos_seguridad.id_for_label }}" class="form-label">
+                  <i class="fas fa-file-alt"></i> {{ form.eventos_seguridad.label }}
+                </label>
+                {{ form.eventos_seguridad }}
+                {% if form.eventos_seguridad.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.eventos_seguridad.errors|join:", " }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Fuera de servicio -->
+              <div class="mb-3">
+                <div class="form-check">
+                  {{ form.fuera_de_servicio }}
+                  <label class="form-check-label" for="{{ form.fuera_de_servicio.id_for_label }}">
+                    <i class="fas fa-power-off"></i> {{ form.fuera_de_servicio.label }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Nombres y firmas -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.nombre_encargado_servicio.id_for_label }}" class="form-label">
+                      <i class="fas fa-user-md"></i> {{ form.nombre_encargado_servicio.label }}
+                    </label>
+                    {{ form.nombre_encargado_servicio }}
+                    {% if form.nombre_encargado_servicio.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.nombre_encargado_servicio.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="{{ form.nombre_encargado_ronda.id_for_label }}" class="form-label">
+                      <i class="fas fa-user-check"></i> {{ form.nombre_encargado_ronda.label }}
+                    </label>
+                    {{ form.nombre_encargado_ronda }}
+                    {% if form.nombre_encargado_ronda.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.nombre_encargado_ronda.errors|join:", " }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Firmas para servicios -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">
+                      <i class="fas fa-signature"></i> Firma Encargado Servicio
+                    </label>
+                    <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" 
+                            class="mb-2 d-block" id="canvas_servicio_edit"></canvas>
+                    <div class="d-flex gap-2 mb-2">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" 
+                              onclick="guardarFirma('canvas_servicio_edit', '{{ form.firma_servicio.id_for_label }}')">
+                        <i class="fas fa-save"></i> Guardar Firma
+                      </button>
+                      <button type="button" class="btn btn-outline-danger btn-sm" 
+                              onclick="limpiarFirma('canvas_servicio_edit')">
+                        <i class="fas fa-eraser"></i> Limpiar
+                      </button>
+                    </div>
+                    {{ form.firma_servicio }}
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">
+                      <i class="fas fa-signature"></i> Firma Encargado Ronda
+                    </label>
+                    <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" 
+                            class="mb-2 d-block" id="canvas_ronda_edit"></canvas>
+                    <div class="d-flex gap-2 mb-2">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" 
+                              onclick="guardarFirma('canvas_ronda_edit', '{{ form.firma_ronda.id_for_label }}')">
+                        <i class="fas fa-save"></i> Guardar Firma
+                      </button>
+                      <button type="button" class="btn btn-outline-danger btn-sm" 
+                              onclick="limpiarFirma('canvas_ronda_edit')">
+                        <i class="fas fa-eraser"></i> Limpiar
+                      </button>
+                    </div>
+                    {{ form.firma_ronda }}
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+              <div class="text-muted small">
+                <i class="fas fa-info-circle"></i> Los cambios se guardarán con su usuario como editor
+              </div>
+              <div class="d-flex gap-2">
+                <a href="{% url 'historial_servicios' %}" class="btn btn-outline-secondary">
+                  <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Funciones de firma (reutilizadas del panel principal)
+function initCanvas(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  
+  if (!canvas || !ctx) {
+    console.error('❌ No se pudo obtener canvas o contexto:', canvasId);
+    return;
+  }
+  
+  let isDrawing = false;
+  let lastX = 0;
+  let lastY = 0;
+  
+  // Configurar canvas
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#000000';
+  
+  // Funciones de dibujo
+  function startDrawing(e) {
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastX = (e.clientX || e.touches[0].clientX) - rect.left;
+    lastY = (e.clientY || e.touches[0].clientY) - rect.top;
+  }
+  
+  function draw(e) {
+    if (!isDrawing) return;
+    
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const currentX = (e.clientX || e.touches[0].clientX) - rect.left;
+    const currentY = (e.clientY || e.touches[0].clientY) - rect.top;
+    
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(currentX, currentY);
+    ctx.stroke();
+    
+    lastX = currentX;
+    lastY = currentY;
+  }
+  
+  function stopDrawing() {
+    isDrawing = false;
+  }
+  
+  // Mouse events
+  canvas.addEventListener('mousedown', startDrawing);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDrawing);
+  canvas.addEventListener('mouseout', stopDrawing);
+  
+  // Touch events
+  canvas.addEventListener('touchstart', startDrawing);
+  canvas.addEventListener('touchmove', draw);
+  canvas.addEventListener('touchend', stopDrawing);
+}
+
+function limpiarFirma(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  
+  if (canvas && ctx) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Limpiar input asociado
+    const inputId = canvasId.replace('canvas_', 'id_').replace('_edit', '');
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.value = '';
+    }
+  }
+}
+
+function guardarFirma(canvasId, inputId) {
+  const canvas = document.getElementById(canvasId);
+  const input = document.getElementById(inputId);
+  
+  if (!canvas || !input) {
+    console.error('❌ Canvas o input no encontrado:', canvasId, inputId);
+    return false;
+  }
+  
+  const dataURL = canvas.toDataURL('image/png');
+  
+  if (dataURL.length < 1000) {
+    alert('Por favor, dibuje su firma antes de guardar');
+    return false;
+  }
+  
+  input.value = dataURL;
+  canvas.style.borderColor = '#28a745';
+  setTimeout(() => {
+    canvas.style.borderColor = '#000';
+  }, 2000);
+  
+  return true;
+}
+
+// Cargar firmas existentes si las hay
+function cargarFirmaExistente(canvasId, firmaData) {
+  if (!firmaData) return;
+  
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  
+  img.onload = function() {
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  };
+  
+  img.src = firmaData;
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  // Inicializar canvas
+  initCanvas('canvas_servicio_edit');
+  initCanvas('canvas_ronda_edit');
+  
+  // Cargar firmas existentes
+  const firmaServicio = document.getElementById('{{ form.firma_servicio.id_for_label }}');
+  const firmaRonda = document.getElementById('{{ form.firma_ronda.id_for_label }}');
+  
+  if (firmaServicio && firmaServicio.value) {
+    cargarFirmaExistente('canvas_servicio_edit', firmaServicio.value);
+  }
+  
+  if (firmaRonda && firmaRonda.value) {
+    cargarFirmaExistente('canvas_ronda_edit', firmaRonda.value);
+  }
+  
+  // Manejar eventos de seguridad
+  const eventosCheckbox = document.getElementById('{{ form.tiene_eventos_seguridad.id_for_label }}');
+  const eventosContainer = document.getElementById('eventos-seguridad-container');
+  
+  if (eventosCheckbox && eventosContainer) {
+    function toggleEventos() {
+      if (eventosCheckbox.checked) {
+        eventosContainer.style.display = 'block';
+      } else {
+        eventosContainer.style.display = 'none';
+        const textArea = eventosContainer.querySelector('textarea');
+        if (textArea) textArea.value = '';
+      }
+    }
+    
+    eventosCheckbox.addEventListener('change', toggleEventos);
+    toggleEventos(); // Ejecutar al cargar
+  }
+});
+</script>
+{% endblock %}

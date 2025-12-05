@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Historial de Rondas - Hospital Universitario San Ignacio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #0056b3;
+            margin-bottom: 5px;
+        }
+        
+        .header h2 {
+            color: #666;
+            margin-top: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .fecha {
+            white-space: nowrap;
+        }
+        
+        .categoria {
+            font-weight: bold;
+            color: #0056b3;
+        }
+        
+        .estado-sin-novedad {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .estado-con-novedad {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .firma-img {
+            max-width: 80px;
+            max-height: 40px;
+            border: 1px solid #ddd;
+        }
+        
+        .sin-firma {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Hospital Universitario San Ignacio</h1>
+        <h2>Gestión Biomédica - Historial de Rondas</h2>
+        <p>Generado el: {{ "now"|date:"d/m/Y H:i" }}</p>
+    </div>
+    
+    <!-- Rondas Regulares en formato de tarjetas -->
+    {% for registro in registros %}
+    <div style="border: 1px solid #ddd; margin-bottom: 15px; padding: 12px; background-color: #fafafa; page-break-inside: avoid;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">
+            <h4 style="margin: 0; color: #0056b3; font-size: 14px;">� {{ registro.get_categoria_display }} - {{ registro.subservicio }}</h4>
+            <span style="font-size: 11px; color: #666;">📅 {{ registro.fecha_creacion|date:"d/m/Y H:i" }}</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
+            <div>
+                <p style="margin: 5px 0; font-size: 11px;"><strong>🔍 Hallazgo:</strong><br>{{ registro.hallazgo|default:"Sin especificar" }}</p>
+                <p style="margin: 5px 0; font-size: 11px;"><strong>🏷️ Placa del equipo:</strong> {{ registro.placa_equipo|default:"Sin especificar" }}</p>
+                <p style="margin: 5px 0; font-size: 11px;"><strong>⚠️ Eventos de seguridad:</strong><br>{{ registro.eventos_seguridad|default:"Sin eventos reportados" }}</p>
+            </div>
+            <div>
+                <p style="margin: 5px 0; font-size: 11px;"><strong>❌ Fuera de servicio:</strong> {{ registro.fuera_de_servicio|default:"No especificado" }}</p>
+                <p style="margin: 5px 0; font-size: 11px;"><strong>📊 Estado del registro:</strong> 
+                    {% if registro.sin_novedad %}
+                        <span style="color: #28a745; font-weight: bold;">✅ Sin novedad</span>
+                    {% else %}
+                        <span style="color: #dc3545; font-weight: bold;">⚠️ Con novedad</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid #ddd; padding-top: 10px;">
+            <h5 style="margin: 0 0 8px 0; font-size: 12px; color: #333;">👥 Responsables y Firmas</h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="text-align: center;">
+                    <p style="margin: 3px 0; font-size: 10px; font-weight: bold;">👤 Encargado del Servicio</p>
+                    <p style="margin: 3px 0; font-size: 11px;">{{ registro.nombre_encargado_servicio|default:"Sin especificar" }}</p>
+                    {% if registro.firma_servicio %}
+                        <img src="{{ registro.firma_servicio }}" alt="Firma Servicio" style="max-width: 120px; max-height: 50px; border: 1px solid #ccc; margin-top: 5px;">
+                    {% else %}
+                        <div style="border: 1px dashed #ccc; padding: 15px; margin-top: 5px; color: #999; font-size: 10px;">Sin firma</div>
+                    {% endif %}
+                </div>
+                <div style="text-align: center;">
+                    <p style="margin: 3px 0; font-size: 10px; font-weight: bold;">👤 Encargado de la Ronda</p>
+                    <p style="margin: 3px 0; font-size: 11px;">{{ registro.nombre_encargado_ronda|default:"Sin especificar" }}</p>
+                    {% if registro.firma_ronda %}
+                        <img src="{{ registro.firma_ronda }}" alt="Firma Ronda" style="max-width: 120px; max-height: 50px; border: 1px solid #ccc; margin-top: 5px;">
+                    {% else %}
+                        <div style="border: 1px dashed #ccc; padding: 15px; margin-top: 5px; color: #999; font-size: 10px;">Sin firma</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 40px; color: #666; font-style: italic;">
+        📝 No hay registros para mostrar
+    </div>
+    {% endfor %}
+    
+    <!-- Sección de Rondas de Cirugía -->
+    {% if registros_cirugia %}
+    <div style="page-break-before: always;"></div>
+    <div class="header">
+        <h1>Rondas de Salas de Cirugía</h1>
+        <h2>Hospital Universitario San Ignacio</h2>
+    </div>
+    
+    {% for cirugia in registros_cirugia %}
+    <div style="margin-bottom: 40px; page-break-inside: avoid;">
+        <div style="background-color: #f8f9fa; padding: 15px; margin-bottom: 20px; border-left: 4px solid #0056b3;">
+            <h3 style="color: #0056b3; margin: 0 0 10px 0;">Semana del {{ cirugia.semana_inicio|date:"d/m/Y" }}</h3>
+            <p style="margin: 5px 0; font-size: 11px;"><strong>Fecha de creación:</strong> {{ cirugia.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            <p style="margin: 5px 0;"><strong>Encargado del servicio:</strong> {{ cirugia.nombre_encargado_servicio }}</p>
+            <p style="margin: 5px 0;"><strong>Encargado de la ronda:</strong> {{ cirugia.nombre_encargado_ronda }}</p>
+            {% if cirugia.observaciones %}
+            <p style="margin: 5px 0;"><strong>Observaciones:</strong> {{ cirugia.observaciones }}</p>
+            {% endif %}
+        </div>
+        
+        <h4 style="color: #333; margin-bottom: 15px; font-size: 14px;">📋 Estado de Equipos por Día</h4>
+        
+        <!-- Leyenda -->
+        <div style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border: 1px solid #ddd;">
+            <strong style="font-size: 11px;">Leyenda:</strong>
+            <span style="background-color: #d4edda; padding: 2px 8px; margin: 0 5px; font-size: 10px;">✅ Operativo</span>
+            <span style="background-color: #fff3cd; padding: 2px 8px; margin: 0 5px; font-size: 10px;">⚠️ Parcial</span>
+            <span style="background-color: #f8d7da; padding: 2px 8px; margin: 0 5px; font-size: 10px;">❌ Fuera</span>
+        </div>
+        
+        <!-- Equipos por sala en formato de tarjetas -->
+        {% for sala, equipos in cirugia.datos.items %}
+        <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 12px; background-color: #f9f9f9;">
+            <h5 style="margin: 0 0 12px 0; color: #0056b3; font-size: 13px;">🏥 Sala {{ sala }}</h5>
+            
+            {% for equipo, dias in equipos.items %}
+            <div style="margin-bottom: 12px; padding: 8px; border: 1px solid #ddd; background-color: white;">
+                <h6 style="margin: 0 0 8px 0; font-size: 11px; color: #333;">⚕️ {{ equipo }}</h6>
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; font-size: 10px;">
+                    <div style="text-align: center; padding: 4px; {% if dias.Lunes == 'operativo_completo' %}background-color: #d4edda;{% elif dias.Lunes == 'operativo_parcial' %}background-color: #fff3cd;{% elif dias.Lunes == 'fuera_de_servicio' %}background-color: #f8d7da;{% else %}background-color: #f8f9fa;{% endif %} border: 1px solid #ddd;">
+                        <strong>Lun</strong><br>
+                        {% if dias.Lunes == 'operativo_completo' %}✅{% elif dias.Lunes == 'operativo_parcial' %}⚠️{% elif dias.Lunes == 'fuera_de_servicio' %}❌{% else %}-{% endif %}
+                    </div>
+                    <div style="text-align: center; padding: 4px; {% if dias.Martes == 'operativo_completo' %}background-color: #d4edda;{% elif dias.Martes == 'operativo_parcial' %}background-color: #fff3cd;{% elif dias.Martes == 'fuera_de_servicio' %}background-color: #f8d7da;{% else %}background-color: #f8f9fa;{% endif %} border: 1px solid #ddd;">
+                        <strong>Mar</strong><br>
+                        {% if dias.Martes == 'operativo_completo' %}✅{% elif dias.Martes == 'operativo_parcial' %}⚠️{% elif dias.Martes == 'fuera_de_servicio' %}❌{% else %}-{% endif %}
+                    </div>
+                    <div style="text-align: center; padding: 4px; {% if dias.Miércoles == 'operativo_completo' %}background-color: #d4edda;{% elif dias.Miércoles == 'operativo_parcial' %}background-color: #fff3cd;{% elif dias.Miércoles == 'fuera_de_servicio' %}background-color: #f8d7da;{% else %}background-color: #f8f9fa;{% endif %} border: 1px solid #ddd;">
+                        <strong>Mié</strong><br>
+                        {% if dias.Miércoles == 'operativo_completo' %}✅{% elif dias.Miércoles == 'operativo_parcial' %}⚠️{% elif dias.Miércoles == 'fuera_de_servicio' %}❌{% else %}-{% endif %}
+                    </div>
+                    <div style="text-align: center; padding: 4px; {% if dias.Jueves == 'operativo_completo' %}background-color: #d4edda;{% elif dias.Jueves == 'operativo_parcial' %}background-color: #fff3cd;{% elif dias.Jueves == 'fuera_de_servicio' %}background-color: #f8d7da;{% else %}background-color: #f8f9fa;{% endif %} border: 1px solid #ddd;">
+                        <strong>Jue</strong><br>
+                        {% if dias.Jueves == 'operativo_completo' %}✅{% elif dias.Jueves == 'operativo_parcial' %}⚠️{% elif dias.Jueves == 'fuera_de_servicio' %}❌{% else %}-{% endif %}
+                    </div>
+                    <div style="text-align: center; padding: 4px; {% if dias.Viernes == 'operativo_completo' %}background-color: #d4edda;{% elif dias.Viernes == 'operativo_parcial' %}background-color: #fff3cd;{% elif dias.Viernes == 'fuera_de_servicio' %}background-color: #f8d7da;{% else %}background-color: #f8f9fa;{% endif %} border: 1px solid #ddd;">
+                        <strong>Vie</strong><br>
+                        {% if dias.Viernes == 'operativo_completo' %}✅{% elif dias.Viernes == 'operativo_parcial' %}⚠️{% elif dias.Viernes == 'fuera_de_servicio' %}❌{% else %}-{% endif %}
+                    </div>
+                    <div style="text-align: center; padding: 4px; {% if dias.Sábado == 'operativo_completo' %}background-color: #d4edda;{% elif dias.Sábado == 'operativo_parcial' %}background-color: #fff3cd;{% elif dias.Sábado == 'fuera_de_servicio' %}background-color: #f8d7da;{% else %}background-color: #f8f9fa;{% endif %} border: 1px solid #ddd;">
+                        <strong>Sáb</strong><br>
+                        {% if dias.Sábado == 'operativo_completo' %}✅{% elif dias.Sábado == 'operativo_parcial' %}⚠️{% elif dias.Sábado == 'fuera_de_servicio' %}❌{% else %}-{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        
+        <!-- Firmas en una sola fila -->
+        <div style="border: 1px solid #ddd; padding: 15px; background-color: #f8f9fa;">
+            <h5 style="margin: 0 0 15px 0; color: #333; font-size: 12px;">✍️ Firmas Digitales</h5>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 50%; padding: 10px; vertical-align: top; border-right: 1px solid #ddd;">
+                        <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 11px;">Encargado del Servicio:</p>
+                        {% if cirugia.firma_servicio %}
+                        <img src="{{ cirugia.firma_servicio }}" alt="Firma Servicio" style="max-width: 180px; max-height: 60px; border: 1px solid #ccc;">
+                        {% else %}
+                        <div style="border: 1px solid #ccc; padding: 20px; text-align: center; color: #666; font-style: italic;">Sin firma</div>
+                        {% endif %}
+                    </td>
+                    <td style="width: 50%; padding: 10px; vertical-align: top;">
+                        <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 11px;">Encargado de la Ronda:</p>
+                        {% if cirugia.firma_ronda %}
+                        <img src="{{ cirugia.firma_ronda }}" alt="Firma Ronda" style="max-width: 180px; max-height: 60px; border: 1px solid #ccc;">
+                        {% else %}
+                        <div style="border: 1px solid #ccc; padding: 20px; text-align: center; color: #666; font-style: italic;">Sin firma</div>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <div class="footer">
+        <p>Sistema de Gestión Biomédica - Hospital Universitario San Ignacio</p>
+        <p>Total de registros regulares: {{ registros|length }}{% if registros_cirugia %} | Total de rondas de cirugía: {{ registros_cirugia|length }}{% endif %}</p>
+    </div>
+</body>
+</html>

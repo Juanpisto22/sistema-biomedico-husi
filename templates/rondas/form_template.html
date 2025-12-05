@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Ronda - {{ categoria_display }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2>📝 Nueva Ronda - {{ categoria_display }}</h2>
+            <p class="text-muted">Servicio: <strong>{{ subservicio }}</strong></p>
+            <hr>
+        </div>
+    </div>
+
+    <form id="form-ronda" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.categoria }}
+        {{ form.subservicio }}
+        {{ form.sin_novedad }}
+        
+        <!-- Sección 1: Información del evento -->
+        <div class="form-section">
+            <h4>🔍 Información del Evento</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.hallazgo.id_for_label }}" class="form-label">
+                            Hallazgo <span class="text-danger">*</span>
+                        </label>
+                        {{ form.hallazgo }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.placa_equipo.id_for_label }}" class="form-label">
+                            Placa del Equipo <span class="text-danger">*</span>
+                        </label>
+                        {{ form.placa_equipo }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="{{ form.orden_trabajo.id_for_label }}" class="form-label">
+                            Orden de Trabajo
+                        </label>
+                        {{ form.orden_trabajo }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="{{ form.eventos_seguridad.id_for_label }}" class="form-label">
+                            Eventos de Seguridad
+                        </label>
+                        {{ form.eventos_seguridad }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="{{ form.fuera_de_servicio.id_for_label }}" class="form-label">
+                            Fuera de Servicio
+                        </label>
+                        {{ form.fuera_de_servicio }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 2: Responsables -->
+        <div class="form-section">
+            <h4>👥 Responsables</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.nombre_encargado_servicio.id_for_label }}" class="form-label">
+                            Nombre Encargado del Servicio <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nombre_encargado_servicio }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.nombre_encargado_ronda.id_for_label }}" class="form-label">
+                            Nombre Encargado de la Ronda <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nombre_encargado_ronda }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 3: Firmas -->
+        <div class="form-section">
+            <h4>✍️ Firmas Digitales</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="signature-container">
+                        <label class="signature-label">
+                            Firma Encargado del Servicio <span class="signature-required">*</span>
+                        </label>
+                        <canvas id="canvas-firma-servicio" class="signature-canvas" width="400" height="150"></canvas>
+                        <div class="signature-buttons">
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-clear-signature" data-canvas="servicio">
+                                🗑️ Limpiar
+                            </button>
+                            <small class="text-muted ms-2">Dibuje su firma con el mouse o dedo</small>
+                        </div>
+                        {{ form.firma_servicio }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="signature-container">
+                        <label class="signature-label">
+                            Firma Encargado de la Ronda <span class="signature-required">*</span>
+                        </label>
+                        <canvas id="canvas-firma-ronda" class="signature-canvas" width="400" height="150"></canvas>
+                        <div class="signature-buttons">
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-clear-signature" data-canvas="ronda">
+                                🗑️ Limpiar
+                            </button>
+                            <small class="text-muted ms-2">Dibuje su firma con el mouse o dedo</small>
+                        </div>
+                        {{ form.firma_ronda }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="form-section">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+                <div>
+                    <button type="button" id="btn-sin-novedad" class="btn btn-secondary btn-sin-novedad">
+                        ⚡ Sin novedad
+                    </button>
+                </div>
+                <div>
+                    <a href="{% url 'panel_principal' %}" class="btn btn-outline-secondary">
+                        ↩️ Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        💾 Guardar Ronda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% load static %}
+<script src="{% static 'js/signature-capture.js' %}"></script>
+{% endblock %}

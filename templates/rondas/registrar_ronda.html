@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="card shadow-sm mt-4 mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Registro de Ronda</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="fw-bold">Servicio:</label>
+                    <div class="form-control bg-light">{{ form.servicio.value|default:servicio_preseleccionado }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Hallazgo</label>
+                        {{ form.hallazgo }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Placa del equipo</label>
+                        {{ form.placa_equipo }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Orden de trabajo</label>
+                        {{ form.orden_trabajo }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Eventos de seguridad</label>
+                        {{ form.evento_seguridad }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Fuera de servicio</label>
+                        {{ form.fuera_servicio }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Sin novedad</label>
+                        {{ form.sin_novedad }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="fw-bold">Nombre del encargado del servicio</label>
+                        {{ form.encargado_servicio }}
+                        <label class="fw-bold mt-2">Firma del encargado del servicio:</label>
+                        <div class="signature-pad mb-2" id="firmaServicioPad"></div>
+                        <input type="hidden" name="firma_encargado_servicio_img" id="firmaServicioImg">
+                        <button type="button" class="btn btn-outline-danger mb-2" onclick="firmaServicioPad.clear()">Limpiar firma</button>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-bold">Nombre del encargado de ronda</label>
+                        {{ form.encargado_ronda }}
+                        <label class="fw-bold mt-2">Firma del encargado de ronda:</label>
+                        <div class="signature-pad mb-2" id="firmaRondaPad"></div>
+                        <input type="hidden" name="firma_encargado_ronda_img" id="firmaRondaImg">
+                        <button type="button" class="btn btn-outline-danger mb-2" onclick="firmaRondaPad.clear()">Limpiar firma</button>
+                    </div>
+                </div>
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <a href="{% url 'panel' %}" class="btn btn-secondary ms-2">Volver</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    var firmaServicioPad = new SignaturePad(document.getElementById('firmaServicioPad'));
+    var firmaRondaPad = new SignaturePad(document.getElementById('firmaRondaPad'));
+    document.querySelector('form').addEventListener('submit', function(e) {
+        document.getElementById('firmaServicioImg').value = firmaServicioPad.isEmpty() ? '' : firmaServicioPad.toDataURL();
+        document.getElementById('firmaRondaImg').value = firmaRondaPad.isEmpty() ? '' : firmaRondaPad.toDataURL();
+    });
+
+    const sinNovedadCheckbox = document.getElementById('id_sin_novedad');
+    const hallazgoInput = document.getElementById('id_hallazgo');
+    const placaEquipoInput = document.getElementById('id_placa_equipo');
+    const ordenTrabajoInput = document.getElementById('id_orden_trabajo');
+    const eventoSeguridadInput = document.getElementById('id_evento_seguridad');
+    const fueraServicioCheckbox = document.getElementById('id_fuera_servicio');
+
+    sinNovedadCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            hallazgoInput.disabled = true;
+            placaEquipoInput.disabled = true;
+            ordenTrabajoInput.disabled = true;
+            eventoSeguridadInput.disabled = true;
+            fueraServicioCheckbox.disabled = true;
+        } else {
+            hallazgoInput.disabled = false;
+            placaEquipoInput.disabled = false;
+            ordenTrabajoInput.disabled = false;
+            eventoSeguridadInput.disabled = false;
+            fueraServicioCheckbox.disabled = false;
+        }
+    });
+</script>
+{% endblock %}

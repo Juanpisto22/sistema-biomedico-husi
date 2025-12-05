@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Panel principal - Gestión Biomédica{% endblock %}
+
+{% block content %}
+  <!-- Título institucional -->
+  <div class="text-center mb-4">
+    <h1 class="display-4 fw-bold text-primary mb-2">Hospital Universitario San Ignacio</h1>
+    <h2 class="h3 text-secondary mb-1">Gestión Biomédica</h2>
+    <h3 class="h4 text-muted">Rondas Biomédicas</h3>
+    <hr class="mx-auto" style="width: 200px; height: 3px; background: linear-gradient(90deg, #007bff, #6c757d);">
+  </div>
+
+  {% if es_dia_festivo %}
+  <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-calendar-alt fa-2x me-3 text-info"></i>
+      <div>
+        <h6 class="alert-heading mb-1">🎉 Día Festivo Detectado</h6>
+        <p class="mb-0">
+          Hoy ({{ fecha_original|date:"d/m/Y" }}) es día festivo en Colombia. 
+          <strong>Las rondas se han trasladado automáticamente al {{ fecha_rondas|date:"l d/m/Y" }}</strong>.
+        </p>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h4 mb-1">Panel de rondas - {{ dia_actual }}</h1>
+      <p class="text-muted small mb-0">{{ ahora|date:"d 'de' F 'de' Y, H:i" }}</p>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h2 class="h5 text-primary text-uppercase">Atajos rápidos</h2>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'historial_servicios' %}" class="btn btn-outline-primary btn-sm">Historial servicios</a>
+            <a href="{% url 'indicadores' %}" class="btn btn-outline-primary btn-sm">Indicadores</a>
+            <a href="https://youtu.be/9Ga7v2vqans" target="_blank" rel="noopener" class="btn btn-info btn-sm"><i class="fas fa-play me-1"></i>Video capacitación</a>
+          </div>
+          <p class="small text-muted mt-3 mb-0">Consulte los registros previos y analice las fallas reportadas por servicio.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion" id="accordionRondas">
+    {% for category in categories %}
+      <div class="accordion-item mb-3 border-0 shadow-sm rounded-3 overflow-hidden">
+        <h2 class="accordion-header" id="heading-{{ category.clave }}">
+          <button
+            class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse-{{ category.clave }}"
+            aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+            aria-controls="collapse-{{ category.clave }}"
+          >
+            <div class="d-flex align-items-center w-100">
+              <div class="flex-grow-1">
+                <div class="fw-bold">{{ category.titulo }}</div>
+              </div>
+              <span class="badge bg-primary ms-2">{{ category.subservicios|length }} servicio{{ category.subservicios|length|pluralize }}</span>
+            </div>
+          </button>
+        </h2>
+        <div
+          id="collapse-{{ category.clave }}"
+          class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+          aria-labelledby="heading-{{ category.clave }}"
+          data-bs-parent="#accordionRondas"
+        >
+          <div class="accordion-body">
+            <div class="row g-3">
+              {% for sub in category.subservicios %}
+                <div class="col-lg-6">
+                  <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-light border-0">
+                      <h5 class="card-title mb-0 text-primary">
+                        <i class="fas fa-hospital me-2"></i>{{ sub.nombre }}
+                      </h5>
+                    </div>
+                    <div class="card-body">
+                      <form method="post" class="ronda-form">
+                        {% csrf_token %}
+                        {{ sub.form.usuario }}
+                        {{ sub.form.categoria }}
+                        {{ sub.form.subservicio }}
+                        <input type="hidden" name="tipo_formulario" value="ronda">
+
+                        <div class="row g-3">
+                          <div class="col-12">
+                            <label class="form-label">Hallazgo encontrado</label>
+                            {{ sub.form.hallazgo }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Placa del equipo</label>
+                            {{ sub.form.placa_equipo }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Orden de trabajo</label>
+                            {{ sub.form.orden_trabajo }}
+                          </div>
+
+                          <div class="col-12">
+                            <label class="form-label">¿Equipo fuera de servicio?</label>
+                            <div class="form-check">
+                              <input type="radio" class="form-check-input" name="{{ sub.form.fuera_de_servicio.name }}" value="True" id="{{ sub.form.fuera_de_servicio.id_for_label }}_si">
+                              <label class="form-check-label" for="{{ sub.form.fuera_de_servicio.id_for_label }}_si">Sí</label>
+                            </div>
+                            <div class="form-check">
+                              <input type="radio" class="form-check-input" name="{{ sub.form.fuera_de_servicio.name }}" value="False" id="{{ sub.form.fuera_de_servicio.id_for_label }}_no" checked>
+                              <label class="form-check-label" for="{{ sub.form.fuera_de_servicio.id_for_label }}_no">No</label>
+                            </div>
+                          </div>
+
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="form-label">¿Hay eventos de seguridad?</label>
+                              <div class="form-check">
+                                <input type="radio" class="form-check-input" name="{{ sub.form.tiene_eventos_seguridad.name }}" value="True" id="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_si">
+                                <label class="form-check-label" for="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_si">Sí</label>
+                              </div>
+                              <div class="form-check">
+                                <input type="radio" class="form-check-input" name="{{ sub.form.tiene_eventos_seguridad.name }}" value="False" id="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_no" checked>
+                                <label class="form-check-label" for="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_no">No</label>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-12">
+                            <label class="form-label">Descripción de eventos de seguridad</label>
+                            {{ sub.form.eventos_seguridad }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Nombre encargado del servicio</label>
+                            {{ sub.form.nombre_encargado_servicio }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Nombre encargado de la ronda</label>
+                            {{ sub.form.nombre_encargado_ronda }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Firma encargado del servicio</label>
+                            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_servicio_{{ forloop.counter }}', '{{ sub.form.firma_servicio.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_servicio_{{ forloop.counter }}')">🗑️ Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_servicio }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Firma encargado de la ronda</label>
+                            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_ronda_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_ronda_{{ forloop.counter }}', '{{ sub.form.firma_ronda.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_ronda_{{ forloop.counter }}')">🗑️ Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_ronda }}
+                          </div>
+
+                          <div class="col-12">
+                            <div class="form-check">
+                              {{ sub.form.sin_novedad }}
+                              <label class="form-check-label" for="{{ sub.form.sin_novedad.id_for_label }}">
+                                Sin novedad
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="mt-3 d-flex gap-2">
+                          <button type="button" class="btn btn-warning" data-action="fuera-servicio" title="Marcar equipo como fuera de servicio">
+                            🔧 Equipo fuera de servicio
+                          </button>
+                          <button type="submit" class="btn btn-primary">Guardar registro</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Sección de Salas de Cirugía -->
+  {% if surgery_available %}
+  <div class="card mt-4 border-0 shadow-sm" id="cirugia-section">
+    <div class="card-header bg-success text-white">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-0">
+            <i class="fas fa-cut me-2"></i>Rondas dentro de Salas de Cirugía
+          </h4>
+          <small>Formato semanal - {{ current_day_name }}</small>
+        </div>
+        <button type="button" class="btn btn-outline-light btn-sm" id="toggle-cirugia-btn">
+          <i class="fas fa-eye-slash"></i> Ocultar
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" id="form-cirugia">
+        {% csrf_token %}
+        <input type="hidden" name="tipo_formulario" value="cirugia">
+        {{ surgery_form.usuario }}
+        {{ surgery_form.semana_inicio }}
+        
+        <div class="table-responsive mb-4">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th rowspan="2" class="align-middle">Sala</th>
+                <th rowspan="2" class="align-middle">Equipo</th>
+                <th class="text-center">{{ current_day_name }}</th>
+              </tr>
+              <tr>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for layout in surgery_layout %}
+                {% for equipo in layout.equipos %}
+                  <tr>
+                    {% if forloop.first %}
+                      <td rowspan="{{ layout.equipos|length }}" class="align-middle fw-bold text-center bg-light">
+                        <i class="fas fa-door-open me-1"></i>Sala {{ layout.sala }}
+                      </td>
+                    {% endif %}
+                    <td class="fw-semibold">{{ equipo }}</td>
+                    <td>
+                      <select class="form-select form-select-sm estado-equipo" data-dia="{{ current_day_name }}" name="equipo_{{ layout.sala }}_{{ equipo }}_{{ current_day_name }}" title="Seleccionar estado del equipo">
+                        <option value="" selected>-- Seleccionar --</option>
+                        <option value="operativo_completo">✅ Operativo completo</option>
+                        <option value="operativo_parcial">⚠️ Operativo parcial</option>
+                        <option value="fuera_de_servicio">❌ Fuera de servicio</option>
+                      </select>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <label class="form-label">Observaciones generales</label>
+            {{ surgery_form.observaciones }}
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Nombre encargado del servicio</label>
+            {{ surgery_form.nombre_encargado_servicio }}
+            <label class="form-label mt-3">Firma encargado del servicio</label>
+            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_cirugia"></canvas>
+            <div>
+              <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="guardarFirma('canvas_servicio_cirugia', '{{ surgery_form.firma_servicio.auto_id }}')">Guardar Firma</button>
+              <button type="button" class="btn btn-outline-danger btn-sm" onclick="limpiarFirma('canvas_servicio_cirugia')">🗑️ Limpiar</button>
+            </div>
+            {{ surgery_form.firma_servicio }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Nombre encargado de la ronda</label>
+            {{ surgery_form.nombre_encargado_ronda }}
+            <label class="form-label mt-3">Firma encargado de la ronda</label>
+            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_ronda_cirugia"></canvas>
+            <div>
+              <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="guardarFirma('canvas_ronda_cirugia', '{{ surgery_form.firma_ronda.auto_id }}')">Guardar Firma</button>
+              <button type="button" class="btn btn-outline-danger btn-sm" onclick="limpiarFirma('canvas_ronda_cirugia')">🗑️ Limpiar</button>
+            </div>
+            {{ surgery_form.firma_ronda }}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success">Guardar formato semanal</button>
+          <button type="button" class="btn btn-outline-warning" onclick="resetearFormularioCirugia()">🧹 Limpiar formulario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+    // Funciones de firma básicas
+    function initCanvas(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+      
+      // Limpiar canvas
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      function startDrawing(e) {
+        drawing = true;
+        draw(e);
+      }
+      
+      function draw(e) {
+        if (!drawing) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        let x, y;
+        
+        if (e.touches) {
+          x = e.touches[0].clientX - rect.left;
+          y = e.touches[0].clientY - rect.top;
+        } else {
+          x = e.clientX - rect.left;
+          y = e.clientY - rect.top;
+        }
+        
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+        
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      }
+      
+      function stopDrawing() {
+        if (drawing) {
+          drawing = false;
+          ctx.beginPath();
+        }
+      }
+      
+      // Mouse events
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+      
+      // Touch events
+      canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        startDrawing(e);
+      });
+      canvas.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        draw(e);
+      });
+      canvas.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        stopDrawing();
+      });
+    }
+
+    function limpiarFirma(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function guardarFirma(canvasId, inputId) {
+      const canvas = document.getElementById(canvasId);
+      const input = document.getElementById(inputId);
+      
+      if (!canvas || !input) {
+        alert('Error: Canvas o campo de firma no encontrado');
+        return false;
+      }
+      
+      const dataURL = canvas.toDataURL('image/png');
+      if (dataURL.length < 1000) {
+        alert('Por favor, dibuje su firma antes de guardar');
+        return false;
+      }
+      
+      input.value = dataURL;
+      canvas.style.borderColor = '#28a745';
+      setTimeout(() => {
+        canvas.style.borderColor = '#6c757d';
+      }, 2000);
+      
+      return true;
+    }
+
+    function resetearFormularioCirugia() {
+      const formCirugia = document.getElementById('form-cirugia');
+      if (formCirugia) {
+        if (confirm('¿Está seguro que desea limpiar todo el formulario de cirugía?')) {
+          formCirugia.reset();
+          limpiarFirma('canvas_servicio_cirugia');
+          limpiarFirma('canvas_ronda_cirugia');
+          alert('✅ Formulario de cirugía limpiado correctamente');
+        }
+      }
+    }
+
+    // Inicializar todos los canvas y funcionalidades
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar canvas
+      const canvases = document.querySelectorAll('canvas[id^="canvas_"]');
+      canvases.forEach(canvas => {
+        initCanvas(canvas.id);
+      });
+      
+      // Re-inicializar canvas cuando se abran acordeones
+      document.addEventListener('shown.bs.collapse', function(e) {
+        const canvasesInSection = e.target.querySelectorAll('canvas[id^="canvas_"]');
+        canvasesInSection.forEach(canvas => {
+          initCanvas(canvas.id);
+        });
+      });
+      
+      // Manejar botón "Equipo fuera de servicio"
+      document.querySelectorAll('[data-action="fuera-servicio"]').forEach(button => {
+        button.addEventListener('click', function() {
+          const form = this.closest('form');
+          const hallazgoField = form.querySelector('textarea[name$="hallazgo"]');
+          const fueraServicioSi = form.querySelector('input[name$="fuera_de_servicio"][value="True"]');
+          
+          if (hallazgoField) {
+            hallazgoField.value = 'Equipo fuera de servicio - requiere mantenimiento correctivo';
+          }
+          if (fueraServicioSi) {
+            fueraServicioSi.checked = true;
+          }
+          
+          alert('Formulario configurado para "Equipo fuera de servicio"');
+        });
+      });
+
+      // Funcionalidad para mostrar/ocultar sección de cirugía
+      const toggleCirugiaBtn = document.getElementById('toggle-cirugia-btn');
+      const cirugiaSection = document.getElementById('cirugia-section');
+      
+      if (toggleCirugiaBtn && cirugiaSection) {
+        const cirugiaBody = cirugiaSection.querySelector('.card-body');
+        let cirugiaVisible = true;
+        
+        toggleCirugiaBtn.addEventListener('click', function() {
+          if (cirugiaVisible) {
+            cirugiaBody.style.display = 'none';
+            toggleCirugiaBtn.innerHTML = '<i class="fas fa-eye"></i> Mostrar';
+            toggleCirugiaBtn.className = 'btn btn-outline-success btn-sm';
+            cirugiaVisible = false;
+          } else {
+            cirugiaBody.style.display = 'block';
+            toggleCirugiaBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar';
+            toggleCirugiaBtn.className = 'btn btn-outline-light btn-sm';
+            cirugiaVisible = true;
+          }
+        });
+      }
+
+      // Manejar eventos de seguridad
+      document.querySelectorAll('input[name$="tiene_eventos_seguridad"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          const form = this.closest('form');
+          const descripcionField = form.querySelector('textarea[name$="eventos_seguridad"]');
+          
+          if (descripcionField) {
+            if (this.value === 'True' && this.checked) {
+              descripcionField.disabled = false;
+              descripcionField.required = true;
+              descripcionField.focus();
+            } else if (this.value === 'False' && this.checked) {
+              descripcionField.disabled = true;
+              descripcionField.required = false;
+              descripcionField.value = '';
+            }
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}

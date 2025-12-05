@@ -1,0 +1,257 @@
+﻿body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, rgba(0, 86, 179, 0.9), rgba(0, 128, 128, 0.85));
+  min-height: 200px;
+}
+
+.hero-background {
+    position: absolute;
+    inset: 0;
+    /* Use the site cover image if available (place the provided image at static/img/cover.png)
+         Fallback: keep small logo if cover not present */
+    background: url("../img/cover.png") center/cover no-repeat, url("../img/logo.png") center/contain no-repeat;
+    opacity: 0.12;
+    background-color: rgba(0,0,0,0.02);
+}
+
+.hero-icon {
+  width: 96px;
+  height: 96px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.accordion-button:not(.collapsed) {
+  color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.form-ronda textarea {
+  resize: vertical;
+}
+
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+@media (max-width: 767.98px) {
+  .hero-card {
+    text-align: center;
+  }
+  .hero-icon {
+    margin: 0 auto 1rem;
+  }
+}
+
+/* ======= ESTILOS PARA CAPTURA DE FIRMAS ======= */
+.signature-container {
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.signature-canvas {
+    border: 1px dashed #6c757d;
+    border-radius: 4px;
+    cursor: crosshair;
+    display: block;
+    width: 100%;
+    height: 150px;
+    background-color: #ffffff;
+    touch-action: none;
+}
+
+.signature-canvas:hover {
+    border-color: #007bff;
+}
+
+.signature-buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.signature-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.signature-required {
+    color: #dc3545;
+}
+
+/* ======= DASHBOARD MEJORADO ======= */
+.dashboard-metric {
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.dashboard-metric h3 {
+    font-size: 2.5rem;
+    margin-bottom: 0;
+    font-weight: bold;
+}
+
+.metric-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.metric-success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.metric-danger { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+/* ======= FORM MEJORADO ======= */
+.field-disabled {
+    background-color: #f8f9fa !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.alert-validation {
+    border-left: 4px solid #dc3545;
+    background-color: #fff5f5;
+    border-radius: 0 8px 8px 0;
+}
+
+/* ======= RESPONSIVE SIGNATURES ======= */
+@media (max-width: 768px) {
+    .signature-canvas {
+        height: 120px;
+    }
+    
+    .signature-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .signature-canvas {
+        height: 100px;
+    }
+}
+
+/* ======= ESTILOS PARA SALAS DE CIRUGÍA ======= */
+.estado-equipo {
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.estado-equipo:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.table-bordered th {
+    border-color: #0056b3;
+}
+
+.bg-primary.text-white {
+    background-color: #0056b3 !important;
+}
+
+/* Site-wide cover/header helper */
+.site-cover {
+    position: relative;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+.site-cover .cover-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,86,179,0.45), rgba(0,86,179,0.6));
+    z-index: 1; /* keep under the content */
+}
+.site-cover .cover-content {
+    position: relative;
+    z-index: 5; /* ensure content (logo/title) sits above overlay */
+}
+
+/* Logo shown in the cover header */
+.site-logo {
+    height: 84px;
+    width: auto;
+    display: inline-block;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+        background: #ffffff; /* ensure visibility over colored background */
+        padding: 6px;
+        border-radius: 8px;
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        vertical-align: middle;
+        z-index: 6;
+}
+
+@media (max-width: 767.98px) {
+    .site-logo {
+        height: 64px;
+        padding: 4px;
+    }
+}
+
+/* Navbar logo (smaller) */
+.navbar-logo {
+    height: 56px;
+    width: auto;
+    object-fit: contain;
+    z-index: 1000;
+}
+
+@media (max-width: 767.98px) {
+    .navbar-logo {
+        height: 32px;
+    }
+}
+
+/* Estados de equipos con colores */
+.estado-equipo.bg-success {
+    background-color: #28a745 !important;
+    border-color: #1e7e34 !important;
+}
+
+.estado-equipo.bg-warning {
+    background-color: #ffc107 !important;
+    border-color: #d39e00 !important;
+    color: #212529 !important;
+}
+
+.estado-equipo.bg-danger {
+    background-color: #dc3545 !important;
+    border-color: #bd2130 !important;
+}
+
+/* Estadísticas en tiempo real */
+#stats-cirugia {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive para salas de cirugía */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .estado-equipo {
+        min-width: 100px;
+        font-size: 0.8rem;
+    }
+}

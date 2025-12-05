@@ -1,0 +1,134 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Indicadores - Gestión Biomédica{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h4 mb-0">📊 Dashboard - Indicadores</h1>
+      <p class="text-muted small mb-0">Hospital Universitario San Ignacio - Gestión Biomédica</p>
+    </div>
+    <div>
+      <a href="{% url 'panel_principal' %}" class="btn btn-outline-primary btn-sm">Volver al panel</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% if resumen %}
+      {% for item in resumen %}
+        <div class="col-md-6 col-lg-3">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h2 class="h6 text-uppercase text-primary">{{ item.titulo }}</h2>
+              <p class="display-6 fw-bold mb-0">{{ item.total }}</p>
+              <p class="small text-muted mb-2">Registros totales</p>
+              <div class="d-flex justify-content-between small">
+                <span>Con novedad:</span>
+                <span class="fw-semibold">{{ item.con_novedad }}</span>
+              </div>
+              <div class="d-flex justify-content-between small">
+                <span>Sin novedad:</span>
+                <span class="fw-semibold">{{ item.sin_novedad }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="alert alert-info" role="alert">Todavía no hay datos para calcular indicadores.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Indicadores especiales -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0 me-3">
+              <div class="bg-danger bg-opacity-10 rounded-circle p-2">
+                <i class="fas fa-exclamation-triangle text-danger"></i>
+              </div>
+            </div>
+            <div>
+              <h3 class="h5 mb-0 text-danger">Equipos Fuera de Servicio</h3>
+              <p class="text-muted small mb-0">Total de reportes</p>
+            </div>
+          </div>
+          <p class="display-6 fw-bold text-danger mb-2">{{ equipos_fuera_servicio }}</p>
+          
+          {% if top_fuera_servicio %}
+            <h6 class="text-muted small text-uppercase mb-2">Top servicios afectados</h6>
+            {% for item in top_fuera_servicio %}
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <span class="small">{{ item.subservicio }}</span>
+                <span class="badge bg-danger rounded-pill">{{ item.total }}</span>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0 me-3">
+              <div class="bg-warning bg-opacity-10 rounded-circle p-2">
+                <i class="fas fa-shield-alt text-warning"></i>
+              </div>
+            </div>
+            <div>
+              <h3 class="h5 mb-0 text-warning">Eventos de Seguridad</h3>
+              <p class="text-muted small mb-0">Total de reportes</p>
+            </div>
+          </div>
+          <p class="display-6 fw-bold text-warning mb-2">{{ eventos_seguridad }}</p>
+          
+          {% if top_eventos_seguridad %}
+            <h6 class="text-muted small text-uppercase mb-2">Top servicios con eventos</h6>
+            {% for item in top_eventos_seguridad %}
+              <div class="d-flex justify-content-between align-items-center py-1">
+                <span class="small">{{ item.subservicio }}</span>
+                <span class="badge bg-warning rounded-pill">{{ item.total }}</span>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+      <h2 class="h5 mb-0">Rondas registradas por semana (salas de cirugía)</h2>
+    </div>
+    <div class="card-body">
+      {% if semanal_cirugia %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Semana (lunes)</th>
+                <th class="text-end">Formatos guardados</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in semanal_cirugia %}
+                <tr>
+                  <td>{{ item.semana_inicio|date:"d/m/Y" }}</td>
+                  <td class="text-end">{{ item.total }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Aún no se han registrado formatos semanales de salas de cirugía.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

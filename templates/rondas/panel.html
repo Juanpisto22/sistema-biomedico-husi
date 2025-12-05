@@ -1,0 +1,763 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Panel principal - Gestión Biomédica{% endblock %}
+
+{% block content %}
+  <style>
+    /* Estilos para organización de servicios */
+    .servicio-card-container {
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    
+    /* Contenedor de servicios en fila */
+    .servicios-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    /* Mejorar apariencia de las tarjetas de servicio */
+    .servicio-card {
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .servicio-card .card-header {
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+
+    .card-body.compacto {
+      max-height: 140px !important;
+      overflow: hidden;
+    }
+    
+    .card-body.compacto .row {
+      padding: 0.5rem !important;
+    }
+    
+    .card-body.compacto .form-controls {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: 1rem !important;
+      justify-content: space-between !important;
+    }
+    
+    .card-body.compacto .col-md-6 {
+      flex: 0 1 auto !important;
+      min-width: 180px !important;
+      margin-bottom: 0.5rem !important;
+    }
+    
+    .card-body.compacto canvas {
+      width: 120px !important;
+      height: 50px !important;
+    }
+    
+    .card-body.compacto .form-label {
+      font-size: 0.85rem !important;
+      margin-bottom: 0.25rem !important;
+    }
+    
+    .card-body.compacto .form-control {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.9rem !important;
+    }
+    
+    .estado-badge {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Animación suave para cambios */
+    .servicio-card {
+      transition: all 0.3s ease;
+    }
+    
+    /* Mejora visual para botones de firmar en modo compacto */
+    .btn-firma-compacto {
+      padding: 0.2rem 0.4rem !important;
+      font-size: 0.75rem !important;
+    }
+    
+    /* Asegurar que campos de nombres y firmas siempre estén visibles */
+
+    /* Animación para campos esenciales */
+    .campo-esencial {
+      transition: all 0.3s ease;
+      animation: resaltar 0.5s ease-in-out;
+    }
+    
+    @keyframes resaltar {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes aparecer {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Animación del ícono de chevron en accordion */
+    .accordion-button:not(.collapsed) .fa-chevron-down {
+      transform: rotate(180deg);
+    }
+    
+    .accordion-button .fa-chevron-down {
+      transition: transform 0.3s ease;
+    }
+  </style>
+
+  <!-- Título institucional -->
+  <div class="text-center mb-4">
+    <h1 class="display-4 fw-bold text-primary mb-2">Hospital Universitario San Ignacio</h1>
+    <h2 class="h3 text-secondary mb-1">Gestión Biomédica</h2>
+    <h3 class="h4 text-muted">Rondas Biomédicas</h3>
+    <hr class="mx-auto" style="width: 200px; height: 3px; background: linear-gradient(90deg, #007bff, #6c757d);">
+  </div>
+
+  {% if es_dia_festivo %}
+  <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-calendar-alt fa-2x me-3 text-info"></i>
+      <div>
+        <h6 class="alert-heading mb-1">Día Festivo Detectado</h6>
+        <p class="mb-0">
+          Hoy ({{ fecha_original|date:"d/m/Y" }}) es día festivo en Colombia. 
+          <strong>Las rondas se han trasladado automáticamente al {{ fecha_rondas|date:"l d/m/Y" }}</strong>.
+        </p>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h4 mb-1">Panel de rondas - {{ dia_actual }}</h1>
+      <p class="text-muted small mb-0">{{ ahora|date:"d 'de' F 'de' Y, H:i" }}</p>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h2 class="h5 text-primary text-uppercase">Atajos rápidos</h2>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'historial_servicios' %}" class="btn btn-outline-primary btn-sm">Historial servicios</a>
+            <a href="{% url 'indicadores' %}" class="btn btn-outline-primary btn-sm">Indicadores</a>
+            <a href="https://youtu.be/9Ga7v2vqans" target="_blank" rel="noopener" class="btn btn-info btn-sm"><i class="fas fa-play me-1"></i>Video capacitación</a>
+          </div>
+          <p class="small text-muted mt-3 mb-0">Consulte los registros previos y analice las fallas reportadas por servicio.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion" id="accordionRondas">
+    {% for category in categories %}
+      <div class="accordion-item mb-3 border-0 shadow-sm rounded-3 overflow-hidden">
+        <h2 class="accordion-header" id="heading-{{ category.clave }}">
+          <button
+            class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse-{{ category.clave }}"
+            aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+            aria-controls="collapse-{{ category.clave }}"
+          >
+            <div class="d-flex align-items-center w-100">
+              <i class="fas fa-hospital-alt me-3 text-primary" style="font-size: 1.5rem;"></i>
+              <div class="flex-grow-1">
+                <div class="fw-bold">{{ category.titulo }}</div>
+              </div>
+              <span class="badge bg-primary ms-2">{{ category.subservicios|length }} servicio{{ category.subservicios|length|pluralize }}</span>
+            </div>
+          </button>
+        </h2>
+        <div
+          id="collapse-{{ category.clave }}"
+          class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+          data-bs-parent="#accordionRondas"
+        >
+          <div class="accordion-body">
+            <div class="servicios-container">
+              {% if category.subservicios %}
+                {% for sub in category.subservicios %}
+                  <div class="mb-3 servicio-card-container">
+                  <div class="card border-0 shadow-sm servicio-card">
+                    <div class="card-header bg-light border-0">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 text-primary" id="servicio-{{ category.clave }}-{{ forloop.counter }}">
+                          <i class="fas fa-hospital me-2"></i>{{ sub.nombre }}
+                        </h5>
+                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#form-{{ category.clave }}-{{ forloop.counter }}" 
+                                aria-expanded="false"
+                                onclick="console.log('Servicio: {{ sub.nombre }}')">
+                          <i class="fas fa-chevron-down"></i> Abrir
+                        </button>
+                      </div>
+                    </div>
+                    <div class="collapse" id="form-{{ category.clave }}-{{ forloop.counter }}">
+                      <div class="card-body">
+                      <form method="post" class="ronda-form">
+                        {% csrf_token %}
+                        {{ sub.form.usuario }}
+                        {{ sub.form.categoria }}
+                        {{ sub.form.subservicio }}
+                        <input type="hidden" name="tipo_formulario" value="ronda">
+
+                        <div class="row g-3">
+                          <div class="col-12">
+                            <label class="form-label">Hallazgo encontrado</label>
+                            {{ sub.form.hallazgo }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Placa del equipo</label>
+                            {{ sub.form.placa_equipo }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Orden de trabajo</label>
+                            {{ sub.form.orden_trabajo }}
+                          </div>
+
+                          <div class="col-12">
+                            <label class="form-label">¿Equipo fuera de servicio?</label>
+                            <div class="form-check">
+                              <input type="radio" class="form-check-input" name="{{ sub.form.fuera_de_servicio.name }}" value="True" id="{{ sub.form.fuera_de_servicio.id_for_label }}_si">
+                              <label class="form-check-label" for="{{ sub.form.fuera_de_servicio.id_for_label }}_si">Sí</label>
+                            </div>
+                            <div class="form-check">
+                              <input type="radio" class="form-check-input" name="{{ sub.form.fuera_de_servicio.name }}" value="False" id="{{ sub.form.fuera_de_servicio.id_for_label }}_no" checked>
+                              <label class="form-check-label" for="{{ sub.form.fuera_de_servicio.id_for_label }}_no">No</label>
+                            </div>
+                          </div>
+
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="form-label">¿Hay eventos de seguridad?</label>
+                              <div class="form-check">
+                                <input type="radio" class="form-check-input" name="{{ sub.form.tiene_eventos_seguridad.name }}" value="True" id="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_si">
+                                <label class="form-check-label" for="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_si">Sí</label>
+                              </div>
+                              <div class="form-check">
+                                <input type="radio" class="form-check-input" name="{{ sub.form.tiene_eventos_seguridad.name }}" value="False" id="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_no" checked>
+                                <label class="form-check-label" for="{{ sub.form.tiene_eventos_seguridad.id_for_label }}_no">No</label>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="col-12" id="eventos_seguridad_container_{{ forloop.counter }}">
+                            <label class="form-label">Descripción de eventos de seguridad</label>
+                            {{ sub.form.eventos_seguridad }}
+                          </div>
+
+                          {% if sub.is_oncology %}
+                          <!-- Oncología: 3 firmas de personal del servicio -->
+                          <div class="col-md-4">
+                            <label class="form-label">Personal del servicio 1</label>
+                            {{ sub.form.nombre_encargado_servicio }}
+                          </div>
+
+                          <div class="col-md-4">
+                            <label class="form-label">Personal del servicio 2</label>
+                            {{ sub.form.nombre_encargado_servicio_2 }}
+                          </div>
+
+                          <div class="col-md-4">
+                            <label class="form-label">Personal del servicio 3</label>
+                            {{ sub.form.nombre_encargado_servicio_3 }}
+                          </div>
+
+                          <div class="col-md-4">
+                            <label class="form-label">Firma personal servicio 1</label>
+                            <canvas width="250" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_servicio_{{ forloop.counter }}', '{{ sub.form.firma_servicio.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_servicio_{{ forloop.counter }}')">Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_servicio }}
+                          </div>
+
+                          <div class="col-md-4">
+                            <label class="form-label">Firma personal servicio 2</label>
+                            <canvas width="250" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_2_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_servicio_2_{{ forloop.counter }}', '{{ sub.form.firma_servicio_2.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_servicio_2_{{ forloop.counter }}')">Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_servicio_2 }}
+                          </div>
+
+                          <div class="col-md-4">
+                            <label class="form-label">Firma personal servicio 3</label>
+                            <canvas width="250" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_3_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_servicio_3_{{ forloop.counter }}', '{{ sub.form.firma_servicio_3.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_servicio_3_{{ forloop.counter }}')">Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_servicio_3 }}
+                          </div>
+
+                          <div class="col-12">
+                            <label class="form-label">Nombre encargado de la ronda</label>
+                            {{ sub.form.nombre_encargado_ronda }}
+                          </div>
+
+                          <div class="col-12">
+                            <label class="form-label">Firma encargado de la ronda</label>
+                            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_ronda_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_ronda_{{ forloop.counter }}', '{{ sub.form.firma_ronda.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_ronda_{{ forloop.counter }}')">🗑️ Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_ronda }}
+                          </div>
+
+                          {% else %}
+                          <!-- Servicios normales: 1 firma de personal del servicio -->
+                          <div class="col-md-6">
+                            <label class="form-label">Nombre encargado del servicio</label>
+                            {{ sub.form.nombre_encargado_servicio }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Nombre encargado de la ronda</label>
+                            {{ sub.form.nombre_encargado_ronda }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Firma encargado del servicio</label>
+                            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_servicio_{{ forloop.counter }}', '{{ sub.form.firma_servicio.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_servicio_{{ forloop.counter }}')">Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_servicio }}
+                          </div>
+
+                          <div class="col-md-6">
+                            <label class="form-label">Firma encargado de la ronda</label>
+                            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_ronda_{{ forloop.counter }}"></canvas>
+                            <div>
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_ronda_{{ forloop.counter }}', '{{ sub.form.firma_ronda.auto_id }}')">Firmar</button>
+                              <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_ronda_{{ forloop.counter }}')">Limpiar</button>
+                            </div>
+                            {{ sub.form.firma_ronda }}
+                          </div>
+                          {% endif %}
+
+                        </div>
+
+                        <div class="mt-3">
+                          <button type="submit" class="btn btn-primary">Guardar registro</button>
+                        </div>
+                      </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle me-2"></i>
+                  No hay servicios disponibles en esta categoría para hoy.
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Sección de Salas de Cirugía -->
+  {% if surgery_available %}
+  <div class="card mt-4 border-0 shadow" id="cirugia-section" style="border-left: 5px solid #4a90e2 !important;">
+    <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-0">
+            <i class="fas fa-procedures me-2"></i>Rondas dentro de Salas de Cirugía
+          </h4>
+          <small class="opacity-90">Formato semanal - {{ current_day_name }}</small>
+        </div>
+        <button type="button" class="btn btn-outline-light btn-sm" id="toggle-cirugia-btn">
+          <i class="fas fa-eye-slash"></i> Ocultar
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" id="form-cirugia">
+        {% csrf_token %}
+        <input type="hidden" name="tipo_formulario" value="cirugia">
+        {{ surgery_form.usuario }}
+        {{ surgery_form.semana_inicio }}
+        
+        <div class="table-responsive mb-4">
+          <table class="table table-hover">
+            <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+              <tr>
+                <th rowspan="2" class="align-middle">Sala</th>
+                <th rowspan="2" class="align-middle">Equipo</th>
+                <th class="text-center">{{ current_day_name }}</th>
+              </tr>
+              <tr>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for layout in surgery_layout %}
+                {% for equipo in layout.equipos %}
+                  <tr>
+                    {% if forloop.first %}
+                      <td rowspan="{{ layout.equipos|length }}" class="align-middle fw-bold text-center bg-light">
+                        <i class="fas fa-door-open me-1"></i>Sala {{ layout.sala }}
+                      </td>
+                    {% endif %}
+                    <td class="fw-semibold">{{ equipo }}</td>
+                    <td>
+                      <select class="form-select form-select-sm estado-equipo" data-dia="{{ current_day_name }}" name="equipo_{{ layout.sala }}_{{ equipo }}_{{ current_day_name }}" title="Seleccionar estado del equipo">
+                        <option value="" selected>-- Seleccionar --</option>
+                        <option value="operativo_completo">Operativo completo</option>
+                        <option value="operativo_parcial">Operativo parcial</option>
+                        <option value="fuera_de_servicio">Fuera de servicio</option>
+                      </select>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <label class="form-label">Observaciones generales</label>
+            {{ surgery_form.observaciones }}
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Nombre encargado del servicio</label>
+            {{ surgery_form.nombre_encargado_servicio }}
+            <label class="form-label mt-3">Firma encargado del servicio</label>
+            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_cirugia"></canvas>
+            <div>
+              <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="guardarFirma('canvas_servicio_cirugia', '{{ surgery_form.firma_servicio.auto_id }}')">Guardar Firma</button>
+              <button type="button" class="btn btn-outline-danger btn-sm" onclick="limpiarFirma('canvas_servicio_cirugia')">Limpiar</button>
+            </div>
+            {{ surgery_form.firma_servicio }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Nombre encargado de la ronda</label>
+            {{ surgery_form.nombre_encargado_ronda }}
+            <label class="form-label mt-3">Firma encargado de la ronda</label>
+            <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_ronda_cirugia"></canvas>
+            <div>
+              <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="guardarFirma('canvas_ronda_cirugia', '{{ surgery_form.firma_ronda.auto_id }}')">Guardar Firma</button>
+              <button type="button" class="btn btn-outline-danger btn-sm" onclick="limpiarFirma('canvas_ronda_cirugia')">Limpiar</button>
+            </div>
+            {{ surgery_form.firma_ronda }}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success">Guardar formato semanal</button>
+          <button type="button" class="btn btn-outline-warning" onclick="resetearFormularioCirugia()">🧹 Limpiar formulario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+    // ==========================================
+    // SISTEMA DE FIRMAS - FUNCIONES PRINCIPALES
+    // ==========================================
+    
+    function initCanvas(canvasId) {
+      console.log('Inicializando canvas:', canvasId);
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      
+      if (!canvas || !ctx) {
+        console.error('No se pudo obtener canvas o contexto:', canvasId);
+        return;
+      }
+      
+      let isDrawing = false;
+      let lastX = 0;
+      let lastY = 0;
+      
+      // Configurar canvas
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#000000';
+      
+      // Funciones de dibujo
+      function startDrawing(e) {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        lastX = (e.clientX || e.touches[0].clientX) - rect.left;
+        lastY = (e.clientY || e.touches[0].clientY) - rect.top;
+      }
+      
+      function draw(e) {
+        if (!isDrawing) return;
+        
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const currentX = (e.clientX || e.touches[0].clientX) - rect.left;
+        const currentY = (e.clientY || e.touches[0].clientY) - rect.top;
+        
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+        
+        lastX = currentX;
+        lastY = currentY;
+      }
+      
+      function stopDrawing() {
+        isDrawing = false;
+      }
+      
+      // Mouse events
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+      
+      // Touch events
+      canvas.addEventListener('touchstart', startDrawing);
+      canvas.addEventListener('touchmove', draw);
+      canvas.addEventListener('touchend', stopDrawing);
+      
+      console.log('Canvas inicializado correctamente:', canvasId);
+    }
+    
+    function limpiarFirma(canvasId) {
+      console.log('Limpiando canvas:', canvasId);
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      
+      if (canvas && ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Limpiar input asociado
+        const inputId = canvasId.replace('canvas_', 'id_');
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.value = '';
+        }
+        
+        console.log('Canvas y campo limpiados:', canvasId);
+      }
+    }
+    
+        function guardarFirma(canvasId, inputId = null) {
+      console.log('=== INICIO GUARDADO DE FIRMA ===');
+      console.log('Canvas ID recibido:', canvasId);
+      console.log('Input ID recibido:', inputId);
+      
+      const canvas = document.getElementById(canvasId);
+      console.log('Canvas encontrado:', !!canvas);
+      
+      if (canvas) {
+        console.log('Canvas dimensiones:', canvas.width, 'x', canvas.height);
+        console.log('Canvas visible:', canvas.offsetWidth > 0 && canvas.offsetHeight > 0);
+      }
+      
+      // Si no se proporciona inputId, intentar deducirlo del canvasId
+      let finalInputId = inputId;
+      if (!finalInputId) {
+        finalInputId = canvasId.replace('canvas_', 'id_');
+        console.log('Input ID deducido:', finalInputId);
+      } else {
+        console.log('Input ID proporcionado:', finalInputId);
+      }
+      
+      const input = document.getElementById(finalInputId);
+      console.log('Input encontrado:', !!input);
+      
+      if (input) {
+        console.log('Input tipo:', input.type);
+        console.log('Input nombre:', input.name);
+        console.log('Input valor actual longitud:', input.value.length);
+      }
+      
+      if (!canvas) {
+        console.error('Canvas no encontrado:', canvasId);
+        console.log('Elementos disponibles con ID similar:');
+        document.querySelectorAll('[id*="canvas"]').forEach(el => {
+          console.log('  -', el.id, el.tagName);
+        });
+        return false;
+      }
+      
+      if (!input) {
+        console.error('Input no encontrado:', finalInputId);
+        console.log('Elementos disponibles con ID similar:');
+        document.querySelectorAll('[id*="firma"]').forEach(el => {
+          console.log('  -', el.id, el.tagName, el.name);
+        });
+        return false;
+      }
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.error('No se pudo obtener contexto 2D');
+        return false;
+      }
+      
+      console.log('Generando imagen...');
+      const dataURL = canvas.toDataURL('image/png');
+      console.log('Tamaño de datos generados:', dataURL.length, 'caracteres');
+      console.log('Primeros 100 caracteres:', dataURL.substring(0, 100));
+      
+      if (dataURL.length < 1000) {
+        console.warn('Imagen muy pequeña, probablemente vacía');
+        alert('Por favor, dibuje su firma antes de guardar');
+        return false;
+      }
+      
+      console.log('Guardando en input...');
+      input.value = dataURL;
+      
+      // Verificar que se guardó
+      console.log('Verificacion: Input valor longitud despues de guardar:', input.value.length);
+      
+      // Feedback visual
+      canvas.style.borderColor = '#28a745';
+      console.log('Aplicando feedback visual verde');
+      
+      setTimeout(() => {
+        canvas.style.borderColor = '#000';
+        console.log('Restaurando color de borde original');
+      }, 2000);
+      
+      console.log('=== GUARDADO COMPLETADO EXITOSAMENTE ===');
+      return true;
+    }
+
+    function resetearFormularioCirugia() {
+      const formCirugia = document.getElementById('form-cirugia');
+      if (formCirugia) {
+        if (confirm('¿Está seguro que desea limpiar todo el formulario de cirugía?')) {
+          formCirugia.reset();
+          limpiarFirma('canvas_servicio_cirugia');
+          limpiarFirma('canvas_ronda_cirugia');
+          alert('Formulario de cirugia limpiado correctamente');
+        }
+      }
+    }
+
+    // ==========================================
+    // INICIALIZACIÓN DEL SISTEMA
+    // ==========================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Inicializando sistema de firmas...');
+      
+      // Inicializar todos los canvas
+      const canvases = document.querySelectorAll('canvas[id^="canvas_"]');
+      console.log('Canvas encontrados:', canvases.length);
+      
+      canvases.forEach(canvas => {
+        initCanvas(canvas.id);
+      });
+      
+      // Re-inicializar canvas cuando se abran acordeones
+      document.addEventListener('shown.bs.collapse', function(e) {
+        const canvasesInSection = e.target.querySelectorAll('canvas[id^="canvas_"]');
+        canvasesInSection.forEach(canvas => {
+          initCanvas(canvas.id);
+        });
+      });
+      
+      // Manejar botones de colapsar/expandir formularios - solo cambiar iconos
+      document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
+        const targetId = button.getAttribute('data-bs-target');
+        const target = document.querySelector(targetId);
+        
+        if (target) {
+          target.addEventListener('shown.bs.collapse', function() {
+            const icon = button.querySelector('i.fas');
+            if (icon) icon.className = 'fas fa-chevron-up';
+          });
+          
+          target.addEventListener('hidden.bs.collapse', function() {
+            const icon = button.querySelector('i.fas');
+            if (icon) icon.className = 'fas fa-chevron-down';
+          });
+        }
+      });
+
+      // Funcionalidad para mostrar/ocultar sección de cirugía
+      const toggleCirugiaBtn = document.getElementById('toggle-cirugia-btn');
+      const cirugiaSection = document.getElementById('cirugia-section');
+      
+      if (toggleCirugiaBtn && cirugiaSection) {
+        const cirugiaBody = cirugiaSection.querySelector('.card-body');
+        let cirugiaVisible = true;
+        
+        toggleCirugiaBtn.addEventListener('click', function() {
+          if (cirugiaVisible) {
+            cirugiaBody.style.display = 'none';
+            toggleCirugiaBtn.innerHTML = '<i class="fas fa-eye"></i> Mostrar';
+            toggleCirugiaBtn.className = 'btn btn-outline-success btn-sm';
+            cirugiaVisible = false;
+          } else {
+            cirugiaBody.style.display = 'block';
+            toggleCirugiaBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar';
+            toggleCirugiaBtn.className = 'btn btn-outline-light btn-sm';
+            cirugiaVisible = true;
+          }
+        });
+      }
+
+      // Manejar eventos de seguridad
+      document.querySelectorAll('input[name$="tiene_eventos_seguridad"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          const form = this.closest('form');
+          const descripcionField = form.querySelector('textarea[name$="eventos_seguridad"]');
+          
+          if (descripcionField) {
+            if (this.value === 'True' && this.checked) {
+              descripcionField.required = true;
+              descripcionField.disabled = false;
+            } else if (this.value === 'False' && this.checked) {
+              descripcionField.required = false;
+              descripcionField.disabled = true;
+              descripcionField.value = '';
+            }
+          }
+        });
+        
+        // Ejecutar al cargar para establecer estado inicial
+        if (radio.checked) {
+          radio.dispatchEvent(new Event('change'));
+        }
+      });
+
+      console.log('✅ Sistema de firmas inicializado correctamente');
+    });
+  </script>
+{% endblock %}

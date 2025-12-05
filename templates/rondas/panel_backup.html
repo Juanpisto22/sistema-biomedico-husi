@@ -1,0 +1,999 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Panel principal - Gestión Biomédica{% endblock %}
+
+{% block content %}
+  <!-- Título institucional -->
+  <div class="text-center mb-4">
+    <h1 class="display-4 fw-bold text-primary mb-2">Hospital Universitario San Ignacio</h1>
+    <h2 class="h3 text-secondary mb-1">Gestión Biomédica</h2>
+    <h3 class="h4 text-muted">Rondas Biomédicas</h3>
+    <hr class="mx-auto" style="width: 200px; height: 3px; background: linear-gradient(90deg, #007bff, #6c757d);">
+  </div>
+
+  {% if es_dia_festivo %}
+  <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-calendar-alt fa-2x me-3 text-info"></i>
+      <div>
+        <h6 class="alert-heading mb-1">� Día Festivo Detectado</h6>
+        <p class="mb-0">
+          Hoy ({{ fecha_original|date:"d/m/Y" }}) es día festivo en Colombia. 
+          <strong>Las rondas se han trasladado automáticamente al {{ fecha_rondas|date:"l d/m/Y" }}</strong>.
+        </p>
+
+  {% if es_dia_festivo %}
+  <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-calendar-alt fa-2x me-3 text-info"></i>
+      <div>
+        <h6 class="alert-heading mb-1">� Día Festivo Detectado</h6>
+        <p class="mb-0">
+          Hoy ({{ fecha_original|date:"d/m/Y" }}) es día festivo en Colombia. 
+          <strong>Las rondas se han trasladado automáticamente al {{ fecha_rondas|date:"l d/m/Y" }}</strong>.
+        </p>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h4 mb-1">Panel de rondas - {{ dia_actual }}</h1>
+      <p class="text-muted small mb-0">{{ ahora|date:"d 'de' F 'de' Y, H:i" }}</p>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h2 class="h5 text-primary text-uppercase">Atajos rápidos</h2>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'historial_servicios' %}" class="btn btn-outline-primary btn-sm">Historial servicios</a>
+            <a href="{% url 'indicadores' %}" class="btn btn-outline-primary btn-sm">Indicadores</a>
+          </div>
+          <p class="small text-muted mt-3 mb-0">Consulte los registros previos y analice las fallas reportadas por servicio.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion" id="accordionRondas">
+    {% for category in categories %}
+      <div class="accordion-item mb-3 border-0 shadow-sm rounded-3 overflow-hidden">
+        <h2 class="accordion-header" id="heading-{{ category.clave }}">
+          <button
+            class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse-{{ category.clave }}"
+            aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+            aria-controls="collapse-{{ category.clave }}"
+          >
+            {{ category.titulo }}
+          </button>
+        </h2>
+        <div
+          id="collapse-{{ category.clave }}"
+          class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+          aria-labelledby="heading-{{ category.clave }}"
+          data-bs-parent="#accordionRondas"
+        >
+          <div class="accordion-body bg-light">
+            <div class="row g-3">
+              {% for sub in category.subservicios %}
+                {% with collapse_id="form-"|add:category.clave|add:"-"|add:sub.nombre|slugify %}
+                  <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">{{ sub.nombre }}</span>
+                        <button
+                          class="btn btn-sm btn-outline-primary"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#{{ collapse_id }}"
+                          aria-expanded="{% if sub.form.errors %}true{% else %}false{% endif %}"
+                          aria-controls="{{ collapse_id }}"
+                        >
+                          Abrir formulario
+                        </button>
+                      </div>
+                      <div id="{{ collapse_id }}" class="collapse {% if sub.form.errors %}show{% endif %}">
+                        <div class="card-body">
+                          <form method="post" class="form-ronda" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="tipo_formulario" value="ronda" />
+                            {{ sub.form.categoria }}
+                            {{ sub.form.subservicio }}
+                            {{ sub.form.sin_novedad }}
+                            <div class="row g-3">
+                              <div class="col-12 col-lg-6">
+                                <label class="form-label">Hallazgo</label>
+                                {{ sub.form.hallazgo }}
+                                {% if sub.form.hallazgo.errors %}
+                                  <div class="invalid-feedback d-block">{{ sub.form.hallazgo.errors.0 }}</div>
+                                {% endif %}
+                              </div>
+                              <div class="col-12 col-lg-6">
+                                <label class="form-label">Placa del equipo</label>
+                                {{ sub.form.placa_equipo }}
+                                {% if sub.form.placa_equipo.errors %}
+                                  <div class="invalid-feedback d-block">{{ sub.form.placa_equipo.errors.0 }}</div>
+                                {% endif %}
+                              </div>
+                              <div class="col-12 col-lg-6">
+                                <label class="form-label">Orden de trabajo (opcional)</label>
+                                {{ sub.form.orden_trabajo }}
+                                {% if sub.form.orden_trabajo.errors %}
+                                  <div class="invalid-feedback d-block">{{ sub.form.orden_trabajo.errors.0 }}</div>
+                                {% endif %}
+                              </div>
+                              <div class="col-12">
+                                <label class="form-label">¿Hay eventos de seguridad?</label>
+                                <div class="form-check-group mb-2">
+                                  {{ sub.form.tiene_eventos_seguridad }}
+                                </div>
+                                {% if sub.form.tiene_eventos_seguridad.errors %}
+                                  <div class="invalid-feedback d-block">{{ sub.form.tiene_eventos_seguridad.errors.0 }}</div>
+                                {% endif %}
+                                
+                                <label class="form-label">Descripción de eventos de seguridad</label>
+                                {{ sub.form.eventos_seguridad }}
+                                {% if sub.form.eventos_seguridad.errors %}
+                                  <div class="invalid-feedback d-block">{{ sub.form.eventos_seguridad.errors.0 }}</div>
+                                {% endif %}
+                              </div>
+                              <div class="col-12 col-lg-6">
+                                <label class="form-label">Nombre encargado del servicio</label>
+                                {{ sub.form.nombre_encargado_servicio }}
+                                {% if sub.form.nombre_encargado_servicio.errors %}
+                                  <div class="invalid-feedback d-block">{{ sub.form.nombre_encargado_servicio.errors.0 }}</div>
+                                {% endif %}
+                              </div>
+                              <div class="col-12 col-lg-6">
+                                <label class="form-label">Nombre encargado de la ronda</label>
+                                {{ sub.form.nombre_encargado_ronda }}
+                                {% if sub.form.nombre_encargado_ronda.errors %}
+                                  <div class="invalid-feedback d-block">{{ sub.form.nombre_encargado_ronda.errors.0 }}</div>
+                                {% endif %}
+                              </div>
+                              <div class="col-12 col-lg-6">
+  <label class="form-label">Firma encargado del servicio</label>
+  <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_servicio_{{ forloop.counter }}"></canvas>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_servicio_{{ forloop.counter }}', '{{ sub.form.firma_servicio.auto_id }}')">Firmar</button>
+    <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_servicio_{{ forloop.counter }}')">🗑️ Limpiar</button>
+  </div>
+  {{ sub.form.firma_servicio }}
+  {% if sub.form.firma_servicio.errors %}
+    <div class="invalid-feedback d-block">{{ sub.form.firma_servicio.errors.0 }}</div>
+  {% endif %}
+</div>
+<div class="col-12 col-lg-6">
+  <label class="form-label">Firma encargado de la ronda</label>
+  <canvas width="300" height="100" style="border:1px solid #000; background:#fff;" class="mb-2" id="canvas_ronda_{{ forloop.counter }}"></canvas>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="guardarFirma('canvas_ronda_{{ forloop.counter }}', '{{ sub.form.firma_ronda.auto_id }}')">Firmar</button>
+    <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="limpiarFirma('canvas_ronda_{{ forloop.counter }}')">🗑️ Limpiar</button>
+  </div>
+  {{ sub.form.firma_ronda }}
+  {% if sub.form.firma_ronda.errors %}
+    <div class="invalid-feedback d-block">{{ sub.form.firma_ronda.errors.0 }}</div>
+  {% endif %}
+</div>
+                              <div class="col-12">
+                                <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
+                                  <button type="submit" class="btn btn-primary" data-action="guardar">
+                                    💾 Guardar
+                                  </button>
+                                  <button type="button" class="btn btn-outline-secondary" data-action="sin-novedad">
+                                    ⚡ Sin novedad
+                                  </button>
+                                  <button type="button" class="btn btn-warning" data-action="fuera-servicio" title="Marcar equipo como fuera de servicio">
+                                    🔧 Equipo fuera de servicio
+                                  </button>
+                                  <div class="ms-md-auto text-muted small align-self-center">
+                                    Registro generado: {{ ahora|date:"d/m/Y H:i" }}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endwith %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if surgery_available %}
+  <div class="card shadow-sm border-0 mt-4" id="cirugia-section">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0">🏥 Ronda dentro de salas de cirugía</h2>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary btn-sm" id="toggle-cirugia-btn" title="Mostrar/Ocultar sección de cirugía">
+          <i class="fas fa-eye-slash"></i> Ocultar
+        </button>
+        <button type="button" class="btn btn-outline-info btn-sm" onclick="resetearFormularioCirugia()" title="Limpiar formulario de cirugía">
+          <i class="fas fa-redo"></i> Limpiar
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" id="form-cirugia" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="tipo_formulario" value="cirugia" />
+        <!-- Información básica -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label" for="id_semana_inicio">📅 Semana de seguimiento (lunes) <span class="text-danger">*</span></label>
+            {{ surgery_form.semana_inicio }}
+            {% if surgery_form.semana_inicio.errors %}
+              <div class="invalid-feedback d-block">{{ surgery_form.semana_inicio.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="observaciones_cirugia">📝 Observaciones generales</label>
+            <textarea name="observaciones" id="observaciones_cirugia" class="form-control" rows="3" 
+                      placeholder="Ingrese observaciones generales sobre las salas de cirugía..."></textarea>
+          </div>
+        </div>
+
+        <!-- Nombres de encargados -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label" for="nombre_encargado_servicio_cirugia">👤 Nombre encargado del servicio <span class="text-danger">*</span></label>
+            <input type="text" name="nombre_encargado_servicio" id="nombre_encargado_servicio_cirugia" 
+                   class="form-control" required placeholder="Nombre completo del encargado del servicio">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="nombre_encargado_ronda_cirugia">👤 Nombre encargado de la ronda <span class="text-danger">*</span></label>
+            <input type="text" name="nombre_encargado_ronda" id="nombre_encargado_ronda_cirugia" 
+                   class="form-control" required placeholder="Nombre completo del encargado de la ronda">
+          </div>
+        </div>
+
+        <!-- Firmas digitales -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="signature-container">
+              <label class="signature-label">
+                ✍️ Firma encargado del servicio <span class="signature-required">*</span>
+              </label>
+              <canvas id="canvas_servicio_cirugia" class="signature-canvas" width="400" height="150"></canvas>
+              <div class="signature-buttons">
+                <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="guardarFirma('canvas_servicio_cirugia', '{{ surgery_form.firma_servicio.auto_id }}')">Guardar Firma</button>
+                <button type="button" class="btn btn-outline-danger btn-sm btn-clear-signature" data-canvas="servicio-cirugia">
+                  🗑️ Limpiar
+                </button>
+                <small class="text-muted ms-2 d-block">Dibuje su firma con el mouse o dedo</small>
+              </div>
+              {{ surgery_form.firma_servicio }}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="signature-container">
+              <label class="signature-label">
+                ✍️ Firma encargado de la ronda <span class="signature-required">*</span>
+              </label>
+              <canvas id="canvas_ronda_cirugia" class="signature-canvas" width="400" height="150"></canvas>
+              <div class="signature-buttons">
+                <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="guardarFirma('canvas_ronda_cirugia', '{{ surgery_form.firma_ronda.auto_id }}')">Guardar Firma</button>
+                <button type="button" class="btn btn-outline-danger btn-sm btn-clear-signature" data-canvas="ronda-cirugia">
+                  🗑️ Limpiar
+                </button>
+                <small class="text-muted ms-2 d-block">Dibuje su firma con el mouse o dedo</small>
+              </div>
+              {{ surgery_form.firma_ronda }}
+            </div>
+          </div>
+        </div>
+        {{ surgery_form.payload }}
+
+        <div class="alert alert-info mb-3">
+          <strong>📋 Instrucciones:</strong> Seleccione el estado de cada equipo para cada día de la semana:
+          <ul class="mb-0 small">
+            <li><strong>Operativo completo:</strong> Equipo funcionando al 100%</li>
+            <li><strong>Operativo parcial:</strong> Equipo con fallas menores pero funcional</li>
+            <li><strong>Fuera de servicio:</strong> Equipo no funcional</li>
+          </ul>
+        </div>
+        
+
+        <div class="table-responsive">
+          <table class="table align-middle table-bordered table-striped mb-4">
+            <thead class="table-primary text-center">
+              <tr>
+                <th scope="col" class="bg-primary text-white">🏥 Sala</th>
+                <th scope="col" class="bg-primary text-white">⚕️ Equipo</th>
+                {% for day in surgery_days %}
+                  <th scope="col" class="bg-primary text-white">{{ day }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in surgery_layout %}
+                {% for equipo in item.equipos %}
+                  <tr data-sala="{{ item.sala }}" data-equipo="{{ equipo }}">
+                    {% if forloop.first %}
+                      <td rowspan="{{ item.equipos|length }}" class="fw-semibold text-center align-middle bg-light">Sala {{ item.sala }}</td>
+                    {% endif %}
+                    <td class="fw-semibold">{{ equipo }}</td>
+                    {% for day in surgery_days %}
+                      <td>
+                        <select class="form-select form-select-sm estado-equipo" data-dia="{{ day }}" title="Seleccionar estado del equipo">
+                          <option value="" selected>-- Seleccionar --</option>
+                          <option value="operativo_completo">✅ Operativo completo</option>
+                          <option value="operativo_parcial">⚠️ Operativo parcial</option>
+                          <option value="fuera_de_servicio">❌ Fuera de servicio</option>
+                        </select>
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Guardar formato semanal</button>
+          <div class="ms-auto text-muted small align-self-center">
+            Última actualización: {{ ahora|date:"d/m/Y H:i" }}
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function enableFirma(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.warn('Canvas no encontrado:', canvasId);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    let dibujando = false;
+    
+    // Configurar el contexto
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000';
+    
+    // Llenar fondo blanco
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    function getPosition(e) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (e.clientX || e.touches[0].clientX) - rect.left,
+            y: (e.clientY || e.touches[0].clientY) - rect.top
+        };
+    }
+
+    function startDrawing(e) {
+        e.preventDefault();
+        dibujando = true;
+        const pos = getPosition(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+        if (!dibujando) return;
+        e.preventDefault();
+        const pos = getPosition(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    }
+
+    function stopDrawing(e) {
+        if (dibujando) {
+            e.preventDefault();
+            dibujando = false;
+        }
+    }
+
+    // Eventos de mouse
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Eventos táctiles
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
+    
+    console.log('Canvas de firma inicializado:', canvasId);
+}
+
+function limpiarFirma(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    console.log('Firma limpiada:', canvasId);
+}
+
+// Manejar habilitación/deshabilitación de campos de eventos de seguridad (se ejecuta en la inicialización principal)
+
+function guardarFirma(canvasId, inputId) {
+    console.log('🖊️ Intentando guardar firma:', { canvasId, inputId });
+    
+    const canvas = document.getElementById(canvasId);
+    const input = document.getElementById(inputId);
+    
+    if (!canvas) {
+        console.error('❌ Canvas no encontrado:', canvasId);
+        console.log('📋 Canvas disponibles:', Array.from(document.querySelectorAll('canvas')).map(c => c.id));
+        alert('❌ Error: Canvas de firma no encontrado. Verifique que el formulario esté completamente cargado.');
+        return false;
+    }
+    
+    if (!input) {
+        console.error('❌ Input no encontrado:', inputId);
+        console.log('📋 Inputs disponibles:', Array.from(document.querySelectorAll('input[type="hidden"]')).map(i => i.id));
+        alert('❌ Error: Campo de firma no encontrado. Contacte al administrador.');
+        return false;
+    }
+    
+    // Verificar si el canvas tiene contenido de manera más robusta
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    let hasContent = false;
+    let pixelCount = 0;
+    
+    // Verificar si hay píxeles no blancos (más tolerante)
+    for (let i = 0; i < data.length; i += 4) {
+        // Si alguno de los valores RGB es diferente de blanco (con tolerancia)
+        if (data[i] < 245 || data[i + 1] < 245 || data[i + 2] < 245) {
+            pixelCount++;
+            if (pixelCount > 10) { // Necesitamos al menos 10 píxeles no blancos
+                hasContent = true;
+                break;
+            }
+        }
+    }
+    
+    if (!hasContent) {
+        alert('⚠️ Por favor, dibuje su firma antes de guardar. Asegúrese de que sea visible.');
+        return false;
+    }
+    
+    try {
+        const dataURL = canvas.toDataURL('image/png');
+        if (dataURL.length < 1000) { // Un PNG muy pequeño probablemente esté vacío
+            alert('⚠️ La firma parece estar vacía. Por favor, dibuje una firma más clara.');
+            return false;
+        }
+        
+        input.value = dataURL;
+        console.log('✅ Firma guardada exitosamente, tamaño:', dataURL.length);
+        console.log('📄 Valor del input:', input.value.substring(0, 100) + '...');
+        
+        // Feedback visual
+        canvas.style.borderColor = '#28a745';
+        setTimeout(() => {
+            canvas.style.borderColor = '#6c757d';
+        }, 2000);
+        
+        alert('✅ Firma guardada correctamente');
+        return true;
+    } catch (error) {
+        console.error('❌ Error guardando firma:', error);
+        alert('❌ Error guardando la firma: ' + error.message);
+        return false;
+    }
+}
+
+// Inicializar todas las firmas al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 Inicializando sistema de firmas...');
+    
+    // Función mejorada para inicializar canvas con reintentos
+    function initializeCanvasWithRetry(canvasId, maxRetries = 3) {
+        let retries = 0;
+        
+        function tryInit() {
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                console.log('✅ Inicializando canvas:', canvasId);
+                enableFirma(canvasId);
+                return true;
+            } else if (retries < maxRetries) {
+                retries++;
+                console.log(`⏳ Reintentando inicialización de ${canvasId} (${retries}/${maxRetries})`);
+                setTimeout(tryInit, 100 * retries);
+                return false;
+            } else {
+                console.warn('❌ No se pudo inicializar canvas:', canvasId);
+                return false;
+            }
+        }
+        
+        return tryInit();
+    }
+    
+    // Función mejorada para inicializar todos los canvas
+    function initializeAllCanvases() {
+        const allCanvases = document.querySelectorAll('canvas[id*="canvas_"]');
+        console.log(`🎯 Encontrados ${allCanvases.length} canvas de firmas`);
+        
+        allCanvases.forEach(function(canvas) {
+            if (canvas.id.includes('servicio') || canvas.id.includes('ronda')) {
+                // Verificar si el canvas está visible
+                if (canvas.offsetParent !== null) {
+                    initializeCanvasWithRetry(canvas.id);
+                } else {
+                    // Si no está visible, esperar un poco
+                    setTimeout(() => {
+                        if (canvas.offsetParent !== null) {
+                            initializeCanvasWithRetry(canvas.id);
+                        }
+                    }, 1000);
+                }
+            }
+        });
+        
+        // Inicialización específica para canvas de cirugía
+        setTimeout(() => {
+            initializeCanvasWithRetry('canvas_servicio_cirugia');
+            initializeCanvasWithRetry('canvas_ronda_cirugia');
+        }, 500);
+    }
+    
+    // Inicializar inmediatamente
+    initializeAllCanvases();
+    
+    // Re-inicializar cuando se abran acordeones
+    document.addEventListener('shown.bs.collapse', function(e) {
+        const canvasesInSection = e.target.querySelectorAll('canvas[id*="canvas_"]');
+        console.log(`🔄 Re-inicializando ${canvasesInSection.length} canvas en sección expandida`);
+        canvasesInSection.forEach(canvas => {
+            initializeCanvasWithRetry(canvas.id);
+        });
+    });
+    
+    // Botones de limpiar firma (mejorado)
+    document.querySelectorAll('.btn-clear-signature').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const canvasType = this.dataset.canvas;
+            console.log('🧹 Limpiando firma:', canvasType);
+            
+            // Mapeo mejorado de tipos de canvas
+            const canvasMap = {
+                'servicio-cirugia': 'canvas_servicio_cirugia',
+                'ronda-cirugia': 'canvas_ronda_cirugia'
+            };
+            
+            if (canvasMap[canvasType]) {
+                limpiarFirma(canvasMap[canvasType]);
+            } else {
+                // Para canvas dinámicos de servicios regulares
+                const form = this.closest('form');
+                if (form) {
+                    const canvases = form.querySelectorAll('canvas');
+                    canvases.forEach(canvas => {
+                        if (canvas.id.includes(canvasType)) {
+                            limpiarFirma(canvas.id);
+                        }
+                    });
+                }
+            }
+        });
+    });
+    
+    // Función de diagnóstico para problemas de firmas
+    window.diagnosticarFirmas = function() {
+        console.log('🔍 DIAGNÓSTICO DE FIRMAS:');
+        console.log('========================');
+        
+        const todosCanvas = document.querySelectorAll('canvas');
+        console.log(`📊 Total canvas encontrados: ${todosCanvas.length}`);
+        
+        todosCanvas.forEach((canvas, index) => {
+            const inicializado = canvas.dataset.initialized === 'true';
+            const tieneEventos = canvas.onmousedown !== null;
+            console.log(`${index + 1}. ID: ${canvas.id} | Inicializado: ${inicializado} | Eventos: ${tieneEventos}`);
+        });
+        
+        const todosInputs = document.querySelectorAll('input[name*="firma"]');
+        console.log(`📝 Total inputs de firma: ${todosInputs.length}`);
+        
+        todosInputs.forEach((input, index) => {
+            const tieneValor = input.value.length > 0;
+            console.log(`${index + 1}. ID: ${input.id} | Tiene valor: ${tieneValor} | Tamaño: ${input.value.length}`);
+        });
+    };
+    
+    // Función de reparación automática para firmas problemáticas
+    window.repararFirmas = function() {
+        console.log('🔧 REPARANDO FIRMAS...');
+        let reparadas = 0;
+        
+        document.querySelectorAll('canvas').forEach(canvas => {
+            if (!canvas.dataset.initialized) {
+                console.log(`🔧 Reparando canvas: ${canvas.id}`);
+                if (enableFirma(canvas.id)) {
+                    reparadas++;
+                }
+            }
+        });
+        
+        console.log(`✅ Reparadas ${reparadas} firmas`);
+        if (reparadas > 0) {
+            alert(`✅ Se repararon ${reparadas} firmas. Ahora deberían funcionar correctamente.`);
+        } else {
+            alert('ℹ️ Todas las firmas están funcionando correctamente.');
+        }
+    };
+    
+    // Agregar botón de diagnóstico y reparación (solo en desarrollo)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const diagnosticBtn = document.createElement('button');
+        diagnosticBtn.innerHTML = '🔍 Diagnosticar';
+        diagnosticBtn.className = 'btn btn-warning btn-sm position-fixed';
+        diagnosticBtn.style.top = '10px';
+        diagnosticBtn.style.right = '130px';
+        diagnosticBtn.style.zIndex = '9999';
+        diagnosticBtn.onclick = window.diagnosticarFirmas;
+        document.body.appendChild(diagnosticBtn);
+        
+        const repairBtn = document.createElement('button');
+        repairBtn.innerHTML = '🔧 Reparar';
+        repairBtn.className = 'btn btn-success btn-sm position-fixed';
+        repairBtn.style.top = '10px';
+        repairBtn.style.right = '10px';
+        repairBtn.style.zIndex = '9999';
+        repairBtn.onclick = window.repararFirmas;
+        document.body.appendChild(repairBtn);
+    }
+    
+    // Auto-reparación silenciosa cada 30 segundos para firmas problemáticas
+    setInterval(() => {
+        let problemasDetectados = 0;
+        document.querySelectorAll('canvas').forEach(canvas => {
+            if (!canvas.dataset.initialized && canvas.id) {
+                problemasDetectados++;
+                enableFirma(canvas.id);
+            }
+        });
+        
+        if (problemasDetectados > 0) {
+            console.log(`🔧 Auto-reparación: ${problemasDetectados} firmas inicializadas`);
+        }
+    }, 30000);
+    
+    // Manejar habilitación/deshabilitación de campos de eventos de seguridad
+    document.querySelectorAll('input[name$="tiene_eventos_seguridad"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            const form = this.closest('form');
+            const descripcionField = form.querySelector('textarea[name$="eventos_seguridad"]');
+            
+            if (descripcionField) {
+                if (this.value === 'True' && this.checked) {
+                    descripcionField.disabled = false;
+                    descripcionField.required = true;
+                    descripcionField.focus();
+                } else if (this.value === 'False' && this.checked) {
+                    descripcionField.disabled = true;
+                    descripcionField.required = false;
+                    descripcionField.value = '';
+                }
+            }
+        });
+    });
+    
+    // Inicializar estado de campos de eventos de seguridad
+    document.querySelectorAll('input[name$="tiene_eventos_seguridad"]:checked').forEach(function(radio) {
+        const form = radio.closest('form');
+        const descripcionField = form.querySelector('textarea[name$="eventos_seguridad"]');
+        
+        if (descripcionField) {
+            if (radio.value === 'True') {
+                descripcionField.disabled = false;
+                descripcionField.required = true;
+            } else {
+                descripcionField.disabled = true;
+                descripcionField.required = false;
+                descripcionField.value = '';
+            }
+        }
+    });
+});
+</script>
+  {{ block.super }}
+  <script>
+    document.querySelectorAll('.form-ronda').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+          console.log('DEBUG - Formulario enviado:', form);
+          const sinNovedadField = form.querySelector('input[name$="sin_novedad"]');
+          const esSinNovedad = sinNovedadField && sinNovedadField.value === 'True';
+          
+          console.log('DEBUG - Es sin novedad?', esSinNovedad);
+          
+          if (!esSinNovedad) {
+            // Validar que los campos de nombres estén llenos
+            const nombreServicio = form.querySelector('input[name$="nombre_encargado_servicio"]');
+            const nombreRonda = form.querySelector('input[name$="nombre_encargado_ronda"]');
+            
+            console.log('DEBUG - Nombre servicio:', nombreServicio ? nombreServicio.value : 'NO ENCONTRADO');
+            console.log('DEBUG - Nombre ronda:', nombreRonda ? nombreRonda.value : 'NO ENCONTRADO');
+            
+            if (nombreServicio && !nombreServicio.value.trim()) {
+              e.preventDefault();
+              alert('Por favor, ingrese el nombre del encargado del servicio.');
+              nombreServicio.focus();
+              return;
+            }
+            
+            if (nombreRonda && !nombreRonda.value.trim()) {
+              e.preventDefault();
+              alert('Por favor, ingrese el nombre del encargado de la ronda.');
+              nombreRonda.focus();
+              return;
+            }
+            
+            // Validar que las firmas estén presentes (mejorado)
+            const firmaServicio = form.querySelector('input[name$="firma_servicio"]');
+            const firmaRonda = form.querySelector('input[name$="firma_ronda"]');
+            
+            console.log('🔍 Firma servicio:', firmaServicio ? firmaServicio.value.length : 'NO ENCONTRADO');
+            console.log('🔍 Firma ronda:', firmaRonda ? firmaRonda.value.length : 'NO ENCONTRADO');
+            
+            // Validación más robusta para firma del servicio
+            if (firmaServicio) {
+              if (!firmaServicio.value || firmaServicio.value.length < 500) {
+                e.preventDefault();
+                console.warn('⚠️ Firma del servicio inválida o vacía');
+                
+                // Intentar encontrar el canvas correspondiente para dar feedback
+                const canvasServicio = form.querySelector('canvas[id*="servicio"]');
+                if (canvasServicio) {
+                  canvasServicio.style.borderColor = '#dc3545';
+                  canvasServicio.style.borderWidth = '2px';
+                }
+                
+                alert('❌ Por favor, firme el campo "Firma encargado del servicio" antes de continuar.\n\n💡 Tip: Haga clic en "Firmar" después de dibujar su firma.');
+                return;
+              }
+            }
+            
+            // Validación más robusta para firma de la ronda
+            if (firmaRonda) {
+              if (!firmaRonda.value || firmaRonda.value.length < 500) {
+                e.preventDefault();
+                console.warn('⚠️ Firma de la ronda inválida o vacía');
+                
+                // Intentar encontrar el canvas correspondiente para dar feedback
+                const canvasRonda = form.querySelector('canvas[id*="ronda"]');
+                if (canvasRonda) {
+                  canvasRonda.style.borderColor = '#dc3545';
+                  canvasRonda.style.borderWidth = '2px';
+                }
+                
+                alert('❌ Por favor, firme el campo "Firma encargado de la ronda" antes de continuar.\n\n💡 Tip: Haga clic en "Firmar" después de dibujar su firma.');
+                return;
+              }
+            }
+          }
+          
+          console.log('DEBUG - Formulario validado, enviando...');
+        });
+    });
+    // ...otros scripts...
+  </script>
+  <script>
+    document.querySelectorAll('.form-ronda').forEach(function (form) {
+      const sinNovedadButton = form.querySelector('[data-action="sin-novedad"]');
+      const guardarButton = form.querySelector('[data-action="guardar"]');
+      const sinNovedadField = form.querySelector('input[name$="sin_novedad"]');
+      const camposBloqueables = form.querySelectorAll('textarea, input[type="text"]:not([name$="firma_servicio"]):not([name$="firma_ronda"])');
+
+      sinNovedadButton?.addEventListener('click', function () {
+        camposBloqueables.forEach(function (campo) {
+          campo.value = '';
+          campo.setAttribute('disabled', 'disabled');
+        });
+        sinNovedadField.value = 'True';
+        form.submit();
+      });
+
+      guardarButton?.addEventListener('click', function () {
+        camposBloqueables.forEach(function (campo) {
+          campo.removeAttribute('disabled');
+        });
+        sinNovedadField.value = 'False';
+      });
+
+      // Manejar botón "Equipo fuera de servicio"
+      const fueraServicioButton = form.querySelector('[data-action="fuera-servicio"]');
+      fueraServicioButton?.addEventListener('click', function () {
+        // Llenar automáticamente los campos para "fuera de servicio"
+        const hallazgoField = form.querySelector('textarea[name$="hallazgo"]');
+        const fueraServicioField = form.querySelector('input[name$="fuera_de_servicio"]');
+        const eventosField = form.querySelector('textarea[name$="eventos_seguridad"]');
+        const tieneEventosRadio = form.querySelector('input[name$="tiene_eventos_seguridad"][value="False"]');
+        
+        if (hallazgoField) {
+          hallazgoField.value = 'Equipo fuera de servicio - requiere mantenimiento correctivo';
+          hallazgoField.focus();
+        }
+        
+        if (fueraServicioField) {
+          fueraServicioField.checked = true;
+        }
+        
+        if (tieneEventosRadio) {
+          tieneEventosRadio.checked = true;
+          tieneEventosRadio.dispatchEvent(new Event('change'));
+        }
+        
+        if (eventosField) {
+          eventosField.disabled = false;
+          eventosField.required = false; // Opcional para fuera de servicio
+          eventosField.value = '';
+        }
+        
+        // Cambiar el color de fondo para indicar el estado especial
+        form.style.backgroundColor = '#fff3cd';
+        form.style.border = '2px solid #ffc107';
+        
+        alert('📋 Formulario configurado para "Equipo fuera de servicio".\n\n✏️ Complete los campos restantes y guarde el registro.');
+      });
+    });
+
+    {% if surgery_available %}
+    const formCirugia = document.getElementById('form-cirugia');
+    if (formCirugia) {
+      formCirugia.addEventListener('submit', function () {
+        const payloadField = formCirugia.querySelector('input[name="payload"]');
+        const data = {};
+
+        formCirugia.querySelectorAll('tbody tr').forEach(function (row) {
+          const sala = row.dataset.sala;
+          const equipo = row.dataset.equipo;
+          if (!data[sala]) {
+            data[sala] = {};
+          }
+          if (!data[sala][equipo]) {
+            data[sala][equipo] = {};
+          }
+          row.querySelectorAll('.estado-equipo').forEach(function (select) {
+            const dia = select.dataset.dia;
+            data[sala][equipo][dia] = select.value;
+          });
+        });
+
+        payloadField.value = JSON.stringify(data);
+      });
+      
+      // Agregar colores a los selects según el estado
+      formCirugia.querySelectorAll('.estado-equipo').forEach(function(select) {
+        select.addEventListener('change', function() {
+          const valor = this.value;
+          // Remover clases previas
+          this.classList.remove('bg-success', 'bg-warning', 'bg-danger', 'text-white');
+          
+          if (valor === 'operativo_completo') {
+            this.classList.add('bg-success', 'text-white');
+          } else if (valor === 'operativo_parcial') {
+            this.classList.add('bg-warning', 'text-white');
+          } else if (valor === 'fuera_de_servicio') {
+            this.classList.add('bg-danger', 'text-white');
+          }
+        });
+      });
+    }
+    
+
+    
+    // Función para mostrar estadísticas rápidas
+    function mostrarEstadisticas() {
+      const selects = document.querySelectorAll('.estado-equipo');
+      let completo = 0, parcial = 0, fuera = 0, sinSeleccionar = 0;
+      
+      selects.forEach(select => {
+        switch(select.value) {
+          case 'operativo_completo': completo++; break;
+          case 'operativo_parcial': parcial++; break;
+          case 'fuera_de_servicio': fuera++; break;
+          default: sinSeleccionar++; break;
+        }
+      });
+      
+      // Crear o actualizar el elemento de estadísticas
+      let statsDiv = document.getElementById('stats-cirugia');
+      if (!statsDiv) {
+        statsDiv = document.createElement('div');
+        statsDiv.id = 'stats-cirugia';
+        statsDiv.className = 'alert alert-info mt-3';
+        document.querySelector('#form-cirugia .table-responsive').after(statsDiv);
+      }
+      
+      statsDiv.innerHTML = `
+        <strong>📊 Resumen actual:</strong>
+        <span class="badge bg-success ms-2">Completo: ${completo}</span>
+        <span class="badge bg-warning ms-2">Parcial: ${parcial}</span>
+        <span class="badge bg-danger ms-2">Fuera: ${fuera}</span>
+        <span class="badge bg-secondary ms-2">Sin seleccionar: ${sinSeleccionar}</span>
+      `;
+    }
+    
+    // Agregar listeners para estadísticas en tiempo real
+    document.addEventListener('change', function(e) {
+      if (e.target.classList.contains('estado-equipo')) {
+        mostrarEstadisticas();
+      }
+    });
+    
+    // Funcionalidad para mostrar/ocultar sección de cirugía
+    const toggleCirugiaBtn = document.getElementById('toggle-cirugia-btn');
+    const cirugiaSection = document.getElementById('cirugia-section');
+    
+    if (toggleCirugiaBtn && cirugiaSection) {
+      const cirugiaBody = cirugiaSection.querySelector('.card-body');
+      let cirugiaVisible = true;
+      
+      toggleCirugiaBtn.addEventListener('click', function() {
+        if (cirugiaVisible) {
+          cirugiaBody.style.display = 'none';
+          toggleCirugiaBtn.innerHTML = '<i class="fas fa-eye"></i> Mostrar';
+          toggleCirugiaBtn.className = 'btn btn-outline-success btn-sm';
+          cirugiaVisible = false;
+          console.log('🙈 Sección de cirugía ocultada');
+        } else {
+          cirugiaBody.style.display = 'block';
+          toggleCirugiaBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar';
+          toggleCirugiaBtn.className = 'btn btn-outline-primary btn-sm';
+          cirugiaVisible = true;
+          console.log('👁️ Sección de cirugía mostrada');
+        }
+      });
+    }
+    
+    // Función para resetear el formulario de cirugía
+    window.resetearFormularioCirugia = function() {
+      const formCirugia = document.getElementById('form-cirugia');
+      if (formCirugia) {
+        if (confirm('¿Está seguro que desea limpiar todo el formulario de cirugía?')) {
+          formCirugia.reset();
+          
+          // Limpiar firmas de cirugía
+          limpiarFirma('canvas_servicio_cirugia');
+          limpiarFirma('canvas_ronda_cirugia');
+          
+          // Limpiar campos hidden
+          const hiddenInputs = formCirugia.querySelectorAll('input[type="hidden"]');
+          hiddenInputs.forEach(input => {
+            if (input.name !== 'csrfmiddlewaretoken' && input.name !== 'tipo_formulario') {
+              input.value = '';
+            }
+          });
+          
+          console.log('🧹 Formulario de cirugía limpiado');
+          alert('✅ Formulario de cirugía limpiado correctamente');
+        }
+      }
+    };
+    {% endif %}
+  </script>
+{% endblock %}
+
