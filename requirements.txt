@@ -11,8 +11,8 @@ mssql-django==1.6
 pyodbc==5.2.0
 
 # PDF Generation
-xhtml2pdf==0.2.17
-reportlab==4.4.5
+xhtml2pdf==0.2.10
+reportlab==3.6.13
 html5lib==1.1
 pypdf==6.1.1
 PyYAML==6.0.3
