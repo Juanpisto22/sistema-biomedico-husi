@@ -24,7 +24,7 @@ pillow==10.4.0
 openpyxl==3.1.5
 
 # Colombian Holidays
-festivos-colombia==0.1.8
+# festivos-colombia==0.1.8 // Se esta usando un modulo interno
 
 # Web Server
 gunicorn==21.2.0
