@@ -16,7 +16,7 @@ class Command(BaseCommand):
         # Crear superusuario si no existe
         if not User.objects.filter(username='Husi2025').exists():
             self.stdout.write('👑 Creando usuarios del sistema...')
-            call_command('crear_usuarios')
+            call_command('init_users')
         else:
             self.stdout.write('✅ Los usuarios ya existen')
         
