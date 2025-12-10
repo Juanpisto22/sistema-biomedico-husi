@@ -12,7 +12,15 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-!$-ky%qw3yii2&+nq@qvi
 
 DEBUG = True
 
-ALLOWED_HOSTS: list[str] = ['*']
+ALLOWED_HOSTS = [
+    "sistema-biomedico-husi-production.up.railway.app",
+    "localhost",
+    "127.0.0.1",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://sistema-biomedico-husi-production.up.railway.app",
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
