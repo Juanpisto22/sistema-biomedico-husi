@@ -69,44 +69,13 @@ import dj_database_url
 import os
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        os.environ.get("DATABASE_URL"),
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",  # local si no hay DATABASE_URL
         conn_max_age=600,
-        ssl_require=False
+        ssl_require=False,
     )
 }
 
-
-
-# Fallback a SQLite para desarrollo local
-if not os.environ.get('PGHOST'):
-    # Verificar si queremos usar SQL Server
-    USE_SQLSERVER = os.environ.get('USE_SQLSERVER', 'False') == 'True'
-    
-    if USE_SQLSERVER:
-        # Configuración para SQL Server
-        DATABASES = {
-            'default': {
-                'ENGINE': 'mssql',
-                'NAME': 'BIOMEDICADES',
-                'USER': 'AdminBiomedicaAPP',
-                'PASSWORD': 'AdminBiomedicaAPPX',
-                'HOST': 'WINDFTIB002\\MDM1',
-                'PORT': '',
-                'OPTIONS': {
-                    'driver': 'ODBC Driver 17 for SQL Server',
-                    'extra_params': 'TrustServerCertificate=yes',
-                },
-            }
-        }
-    else:
-        # SQLite para desarrollo local (por defecto)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
